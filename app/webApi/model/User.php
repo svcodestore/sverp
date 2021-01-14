@@ -54,7 +54,7 @@ class User
 
         $cond = '';
         if ($usrid !== '*') {
-            $cond = "WHERE a.con_id = '$usrid'";
+            $cond = "WHERE a.con_id = '$usrid' OR a.id = '$usrid'";
         }
 
         $sql = "SELECT

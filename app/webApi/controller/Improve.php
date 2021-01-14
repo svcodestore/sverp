@@ -2,7 +2,7 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-05 13:28:20
- * @LastEditTime: 2020-12-30 10:25:52
+ * @LastEditTime: 2021-01-14 16:03:40
  * @LastEditors: yanbuw1911
  * @Description: 
  * @FilePath: \backend\app\webApi\controller\Improve.php
@@ -37,6 +37,15 @@ class Improve
         return json($rtn);
     }
 
+    public function saveSoftRequireOpt()
+    {
+        $opt = input();
+
+        $rtn['result'] = (new ModelImprove())->handleSoftwareRequireOpt($opt);
+
+        return json($rtn);
+    }
+
     public function getUserFavoritePages()
     {
         $id = input('post.id');
@@ -61,6 +70,35 @@ class Improve
         $param = input();
 
         $rtn['result'] = (new ModelImprove())->rmUserFavirotePage($param['menuid'], $param['usrid']);
+
+        return json($rtn);
+    }
+
+    public function setSoftwareRequireDayCheck()
+    {
+        $param = input();
+
+        $rtn['result'] = (new ModelImprove())->setSoftwareRequireDayCheck($param['softid'], $param['checker']);
+
+        return json($rtn);
+    }
+
+    public function getDailyCheckList()
+    {
+        $softid = input('post.softid');
+
+        $rtn['result'] = true;
+        $rtn['data'] = (new ModelImprove())->dailyCheckList($softid);
+
+        return json($rtn);
+    }
+
+    public function auditRequire()
+    {
+        $softid = input('post.softid');
+        $usrid = input('post.usrid');
+
+        $rtn['result'] = (new ModelImprove())->auditRequire($softid, $usrid);
 
         return json($rtn);
     }

@@ -2,7 +2,7 @@
 /*
 * @Author: yanbuw1911
 * @Date: 2020-11-26 15:20:34
- * @LastEditTime: 2020-12-18 17:15:33
+ * @LastEditTime: 2021-01-11 13:59:57
  * @LastEditors: yanbuw1911
 * @Description:
  * @FilePath: \backend\app\webApi\controller\Privilege.php
@@ -58,7 +58,7 @@ class Privilege
                 $funcname = $reflectMethod->{'name'};
                 if ($modifier[0] === 'public' && $funcname !== '__construct') {
                     $api = DIRECTORY_SEPARATOR . strtolower($classname) . DIRECTORY_SEPARATOR . $funcname;
-                    $apiList[] = ['path' => $api, 'doc' => "'" . $reflectMethod->getDocComment() . "'"];
+                    $apiList[] = ['path' => $api, 'doc' => $reflectMethod->getDocComment() ?: ''];
                 }
             }
         }
