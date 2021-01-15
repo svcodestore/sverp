@@ -2,7 +2,7 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-05 13:28:20
- * @LastEditTime: 2021-01-14 16:03:40
+ * @LastEditTime: 2021-01-15 13:48:30
  * @LastEditors: yanbuw1911
  * @Description: 
  * @FilePath: \backend\app\webApi\controller\Improve.php
@@ -99,6 +99,46 @@ class Improve
         $usrid = input('post.usrid');
 
         $rtn['result'] = (new ModelImprove())->auditRequire($softid, $usrid);
+
+        return json($rtn);
+    }
+
+    public function getSoftwareRequireDetail()
+    {
+        $softid = input('post.softid');
+
+        $rtn['result'] = true;
+        $rtn['data'] = (new ModelImprove())->softwareRequireDetail($softid);
+
+        return json($rtn);
+    }
+
+    public function saveSoftwareRequireDetail()
+    {
+        $softid = input('post.softid');
+        $detail = input('post.detail');
+
+        $rtn['result'] = (new ModelImprove())->saveSoftwareRequireDetail($softid, $detail);
+
+        return json($rtn);
+    }
+
+    public function getSoftwareRequireDevLog()
+    {
+        $softid = input('post.softid');
+
+        $rtn['result'] = true;
+        $rtn['data'] = (new ModelImprove())->softwareRequireDevLog($softid);
+
+        return json($rtn);
+    }
+
+    public function saveSoftwareRequireDevLog()
+    {
+        $softid = input('post.softid');
+        $devLog = input('post.devLog');
+
+        $rtn['result'] = (new ModelImprove())->saveSoftwareRequireDevLog($softid, $devLog);
 
         return json($rtn);
     }

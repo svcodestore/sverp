@@ -2,7 +2,7 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-05 13:32:40
- * @LastEditTime: 2021-01-14 16:03:48
+ * @LastEditTime: 2021-01-15 13:42:41
  * @LastEditors: yanbuw1911
  * @Description: 
  * @FilePath: \backend\app\webApi\api\Improve.php
@@ -58,5 +58,25 @@ class Improve extends BaseController
     public function auditRequire()
     {
         return (new ControllerImprove())->auditRequire();
+    }
+
+    public function getSoftwareRequireDetail()
+    {
+        return (new ControllerImprove())->getSoftwareRequireDetail();
+    }
+
+    public function saveSoftwareRequireDetail()
+    {
+        return (new ControllerImprove())->saveSoftwareRequireDetail();
+    }
+
+    public function getSoftwareRequireDevLog()
+    {
+        return (new ControllerImprove())->getSoftwareRequireDevLog();
+    }
+
+    public function saveSoftwareRequireDevLog()
+    {
+        return (new ControllerImprove())->saveSoftwareRequireDevLog();
     }
 }

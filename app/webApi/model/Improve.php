@@ -2,7 +2,7 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-05 13:18:24
- * @LastEditTime: 2021-01-14 16:28:07
+ * @LastEditTime: 2021-01-15 13:46:43
  * @LastEditors: yanbuw1911
  * @Description: 
  * @FilePath: \backend\app\webApi\model\Improve.php
@@ -99,5 +99,57 @@ class Improve
         $res = Db::table($t)->insert(['isd_softid' => $softid, 'isd_checker' => $checker]);
 
         return false !== $res;
+    }
+
+    public function softwareRequireDetail(string $softid): array
+    {
+        $t = 'starvc_imprvlib.imprvlib_soft_requr_detail';
+        $sql = "SELECT
+                    CAST( isrd_detail AS CHAR ( 10000 ) CHARACTER SET gbk ) AS isrd_detail 
+                FROM
+                    $t
+                WHERE
+                    isrd_softid = ?";
+        $res = Db::query($sql, [$softid]);
+
+        return $res;
+    }
+
+    public function saveSoftwareRequireDetail(string $softid, string $detail): bool
+    {
+        $t = 'starvc_imprvlib.imprvlib_soft_requr_detail';
+        $sql = "INSERT INTO $t ( isrd_softid, isrd_detail )
+                VALUES
+                    ( ?, ? ) 
+                    ON DUPLICATE KEY UPDATE isrd_detail = ?";
+        $res = Db::execute($sql, [$softid, $detail, $detail]);
+
+        return 0 !== $res;
+    }
+
+    public function softwareRequireDevLog(string $softid): array
+    {
+        $t = 'starvc_imprvlib.imprvlib_soft_dev_log';
+        $sql = "SELECT
+                    CAST( isdl_log AS CHAR ( 10000 ) CHARACTER SET utf8 ) AS isdl_log 
+                FROM
+                    $t
+                WHERE
+                    isdl_softid = ?";
+        $res = Db::query($sql, [$softid]);
+
+        return $res;
+    }
+
+    public function saveSoftwareRequireDevLog(string $softid, string $devLog): bool
+    {
+        $t = 'starvc_imprvlib.imprvlib_soft_dev_log';
+        $sql = "INSERT INTO $t ( isdl_softid, isdl_log )
+                VALUES
+                    ( ?, ? ) 
+                    ON DUPLICATE KEY UPDATE isdl_log = ?";
+        $res = Db::execute($sql, [$softid, $devLog, $devLog]);
+
+        return 0 !== $res;
     }
 }
