@@ -2,7 +2,7 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-04 08:50:09
- * @LastEditTime: 2021-01-08 10:55:16
+ * @LastEditTime: 2021-01-16 16:03:47
  * @LastEditors: yanbuw1911
  * @Description: 
  * @FilePath: \backend\app\webApi\api\Test.php
@@ -69,6 +69,13 @@ class Test
         print_r($arList);
     }
 
+    public function setAutoSchedulePdo()
+    {
+        $prodObj = new \app\webApi\model\Prod();
+        $res = $prodObj->syncProdSchdParam('V', 2021, 01);
+        dd($res);
+    }
+
     public function test()
     {
         // $data = Db::table('star_cfo.prdmoedl')->where(['facno' => 'B0415F'])->select()->toArray();
@@ -77,12 +84,42 @@ class Test
         //     var_dump($value);
         // }
 
-        // $conn = mysqli_connect('192.168.123.51', 'root', 'root', 'star_cfo');
-        // $sql = "select * from hrdlib_outbound_material";
-        // // $res = mysqli_query($conn, $sql);
-        // $dbh = new \PDO("mysql:host=127.0.0.1;dbname=starvc_homedb;port=3306", 'root', 'root');
-        // $res = $dbh->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
+        $conn = mysqli_connect('192.168.123.51', 'root', 'root', 'star_cfo');
+        $sql = "select a.stock,a.create_time,a.type,a.author,b.goods_name from cfo_goods_stock as a,cfo_goods as b where a.goods_id = b.id";
+        $res = mysqli_fetch_all(mysqli_query($conn, $sql), MYSQLI_ASSOC);
 
+        $dbh = new \PDO("mysql:host=127.0.0.1;dbname=starvc_homedb;port=3306", 'root', 'root');
+        $sql = "SELECT * FROM `hrdlib_material_used`";
+        $res2 = $dbh->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
+        $values = [];
+        foreach ($res as $v) {
+            foreach ($res2 as $v2) {
+                if ($v['goods_name'] == $v2['hmu_material_name']) {
+                    $t = '';
+                    switch ($v['type']) {
+                        case '0':
+                            $t = 'set';
+                            break;
+                        case '1':
+                            $t = 'put';
+                            break;
+                        case '2':
+                            $t = 'out';
+                            break;
+                    }
+                    $values[] = [
+                        'hml_material_id' => $v2['id'],
+                        'hml_operate_qty' => $v['stock'],
+                        'hml_operate_type' => $t,
+                        'hml_creator' => $v['author'],
+                        'hml_join_date' => $v['create_time'] ? date('Y-m-d H:i:s', $v['create_time']) : $v['create_time'],
+                    ];
+
+                    continue;
+                }
+            }
+        }
+        dd(Db::table('hrdlib_material_log')->insertAll($values));
         // $cnt = 0;
         // foreach ($res as $v) {
         //     $value = Db::table('hrdlib_material_used')->where('hmu_material_name', $v['hom_material_id'])->field(['id', 'hmu_material_name'])->find();
