@@ -4,7 +4,7 @@ declare(strict_types=1);
 /*
 * @Author: yanbuw1911
 * @Date: 2021-01-07 14:07:28
- * @LastEditTime: 2021-01-21 14:19:11
+ * @LastEditTime: 2021-01-21 15:20:37
  * @LastEditors: yanbuw1911
 * @Description:
  * @FilePath: \backend\app\webApi\model\Hrd.php
@@ -213,7 +213,7 @@ class Hrd
         $t   = 'hrdlib_outbound_order';
         $res = Db::table($t)
             ->where('id', $data['outboundId'])
-            ->update(['hoo_is_approvee' => 1]);
+            ->update(['hoo_is_approver' => 1]);
 
         $flag = $res !== false;
         if ($flag) {
