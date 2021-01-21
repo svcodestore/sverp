@@ -4,7 +4,7 @@ declare(strict_types=1);
 /*
 * @Author: yanbuw1911
 * @Date: 2021-01-07 14:07:28
- * @LastEditTime: 2021-01-16 17:16:59
+ * @LastEditTime: 2021-01-21 07:49:25
  * @LastEditors: yanbuw1911
 * @Description:
  * @FilePath: \backend\app\webApi\model\Hrd.php
@@ -35,7 +35,7 @@ class Hrd
                     * 
                 FROM
                     hrdlib_material_used 
-                WHERE hmu_material_parent = '$categoryId'
+                WHERE hmu_material_parent = '$categoryId' OR POSITION('$categoryId' in hmu_material_name)
                 ORDER BY
                     CAST( hmu_material_stock AS DECIMAL ) DESC";
         } else {
@@ -110,15 +110,23 @@ class Hrd
     public function outboundApprove(string $outboundId): bool
     {
         $t   = 'hrdlib_outbound_order';
-        $res = Db::table($t)->where('id', $outboundId)->update(['hoo_is_approvee' => 1]);
+        $res = Db::table($t)
+            ->where('id', $outboundId)
+            ->update(['hoo_is_approvee' => 1]);
 
         return $res !== false;
     }
 
     public function materialLogList(string $materialId): array
     {
-        $t = 'hrdlib_material_log';
-        $res = Db::table($t)->where('hml_material_id', $materialId)->alias('a')->join('hrdlib_material_used b', 'a.hml_material_id=b.id')->order('a.hml_join_date', 'desc')->select()->toArray();
+        $t   = 'hrdlib_material_log';
+        $res = Db::table($t)
+            ->where('hml_material_id', $materialId)
+            ->alias('a')
+            ->join('hrdlib_material_used b', 'a.hml_material_id=b.id')
+            ->order('a.hml_join_date', 'desc')
+            ->select()
+            ->toArray();
 
         return $res;
     }
