@@ -2,10 +2,10 @@
 /*
  * @Author: yu chen
  * @Date: 2020-12-07 16:23:05
- * @LastEditTime: 2021-01-20 16:33:14
+ * @LastEditTime: 2021-01-21 15:54:42
  * @LastEditors: yu chen
  * @Description: In User Settings Edit
- * @FilePath: \undefinedc:\Users\admin\Desktop\Record.php
+ * @FilePath: \sverp-frontd:\phpstudy_pro\WWW\git\test\sverp\app\webApi\controller\Record.php
  */
 
 namespace app\webApi\controller;
@@ -470,7 +470,7 @@ class Record
   {
     $params = request()->param('params');
     if ($params) {
-	  $notice = [];
+      $notice = [];
       $fitting_name = '';
       $fitting_number = '';
       $record = new recordModel;
@@ -480,44 +480,51 @@ class Record
       $rows['repaircontents'] = $params['content'];
       $rows['repairmethod'] = $params['action'];
       $res = $record->updateRecord($id, $rows);
-	
+
       if (!empty($res) && !empty($params['number'])) {
-		$list = array_filter($params['number']);
-		
+        $list = array_filter($params['number']);
+
         foreach ($list as $k => $v) {
           $where['id'] = $k;
-			$field = '*';
+          $field = '*';
           if (!empty($v)) {
             $result = $record->getFitting($field, $where, $page = 0, $limit = 10000);
-			
           }
           if (!empty($result) && !empty($result[0]['fitting_num']) && ($result[0]['fitting_num'] - $v) >= 0) {
-			 
+
             $data['fitting_num'] = $result[0]['fitting_num'] - $v;
             $data['fitting_msg_status'] = intval($result[0]['fitting_msg_status']); //由于下一次循环没有定义该值所以需要默认数据库的值
-			 
+
             if ($data['fitting_num'] < $result[0]['fitting_msg_number'] && $result[0]['fitting_msg_status'] === 1) {
               $data['fitting_msg_status'] = -1;
               $fitting_name .= $result[0]['fitting_name'] . '、';
               $fitting_number .= $data['fitting_num'] . '、';
             }
-            $r=$record->updateFitting($k, $data);
+            $r = $record->updateFitting($k, $data);
           } else {
             $msg['msg'] = '配件不足';
           }
         }
-		$fitting_name=mb_substr($fitting_name,0,-1,"UTF-8");
-		$fitting_number=mb_substr($fitting_number,0,-1,"UTF-8");
+        $fitting_name = mb_substr($fitting_name, 0, -1, "UTF-8");
+        $fitting_number = mb_substr($fitting_number, 0, -1, "UTF-8");
         if (!empty($fitting_name) && !empty($fitting_number)) {
-		$notice['fitting']=$fitting_name;
-		$notice['number']=$fitting_number;
-        $notice['time'] = date('Y-m-d H:i:s', time());
-        $phone = '15391033249';
-		$respon = [];
-          $respon = smsSend($phone, '文迪软件', 'SMS_210070263', $notice); //发送短信
-          if ($respon['Code'] === 'OK') {
-            //修改状态
-            $msg['msg'] = '短信发送成功';
+          $notice['fitting'] = $fitting_name;
+          $notice['number'] = $fitting_number;
+          $notice['time'] = date('Y-m-d H:i:s', time());
+          $phone = '';
+          $whereArr['notice_people'] = 2;
+          $noticeArr = $record->getNotify('notify_people,notify_phone', $whereArr, 0, 1000);
+          foreach ($noticeArr as $key => $value) {
+            $phone .= $value['notify_phone'] . ',';
+          }
+          $phone = substr($phone, 0, -1);
+          if (!empty($phone)) {
+            $respon = [];
+            $respon = smsSend($phone, '文迪软件', 'SMS_210070263', $notice); //发送短信
+            if ($respon['Code'] === 'OK') {
+              //修改状态
+              $msg['msg'] = '短信发送成功';
+            }
           }
         }
       }
