@@ -18,6 +18,7 @@ class Record
   protected $meche_info = starvc_homedb . '.prodlib_meche_info';
   protected $repair_log = starvc_homedb . '.prodlib_repair_log';
   protected $repair_notify_staff = starvc_homedb . '.prodlib_repair_notify_staff';
+  protected $tmplib_fitting = starvc_homedb. '.tmplib_fitting';
   public function repair_record($field, $where, $page, $limit)
   {
     $data = Db::table($this->repair_record)
@@ -219,5 +220,53 @@ class Record
   {
     $res = Db::name($this->repair_record)->where('id', $where)->update($rows);
     return $res !== false;
+  }
+   public function delFitting(array $ids): bool
+  {
+    $res = Db::name($this->tmplib_fitting)->delete($ids);
+    return $res !== false;
+  }
+  public function addFitting(array $rows): bool
+  {
+	   
+    $res = Db::name($this->tmplib_fitting)->insertAll($rows);
+	
+    return $res;
+  }
+  public function updateFitting(string $where, array $rows): bool
+  {
+    $res = Db::name($this->tmplib_fitting)->where('id', $where)->update($rows);
+    return $res !== false;
+  }
+   public function saveFitting(array $opt): bool
+  {
+    Db::startTrans();
+    $flag = true;
+    foreach ($opt as $k => $v) {
+      if ($k == 'A') {
+        $flag = $flag && false !== $this->addFitting($v);
+      }
+      if ($k == 'U') {
+        foreach ($v as $ks => $vs) {
+          $pkVal = array_keys($vs)[0];
+          $row   = array_values($vs)[0];
+          $flag  = $flag && false !== $this->updateFitting($pkVal, $row);
+        }
+      }
+      if ($k == 'D') {
+        $flag  = $flag && false !== $this->delFitting($v['id']);
+      }
+    }
+	
+    if ($flag) {
+      Db::commit();
+    } else {
+      Db::rollback();
+    }
+    return $flag;
+  }
+  public function getFitting($field, $where, $page, $limit)
+  {
+    return Db::table($this->tmplib_fitting)->field($field)->where($where)->limit($page, $limit)->select()->toArray();
   }
 }

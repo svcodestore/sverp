@@ -47,5 +47,22 @@ class Record extends BaseController
     {
        return (new recordController)->checkCode();
     }
+	 public function apiFitting()
+    {
+       return (new recordController)->getFitting();
+    }
+    public function apiSaveFitting()
+    {
+       return (new recordController)->saveFitting();
+    }
+	 public function apiFittingMsg()
+    {
+       return (new recordController)->fittingMsg();
+    }
+	 public function apiRepairComp()
+    {
+       return (new recordController)->repairComplete();
+    }
+	
    
 }

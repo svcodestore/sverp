@@ -64,50 +64,72 @@ class Chat
      * @param group_id 当前组织id
      * @param to_group_id 要发生的组织
      */
-    public function test()
+    public function chat()
     {
         $param = input();
+		
         // print_r($param);die;
         switch ($param['type']) {
+			case 'pong':
+				$msg['type']='pong';
+				Gateway::sendToAll(json_encode($msg));
+				//$msg['time'] = date('Y-m-d H:i:s', time());
+                //$msg['uidCount'] = Gateway::getAllUidCount();
+                //$msg['uidAll'] =  [];//获取所有在线绑定的uid
+				//$list = [];
+				//$list = Gateway::getAllUidList();
+				//$list = implode(',',$list);
+				//$msg['uidAll'] = explode(',',$list);
+				 //將陣列中後續需要的資訊儲存快取，供後續使用
+				//echo '<script language="javascript">';
+				//echo 'localStorage.setItem("data0",JSON.stringify('.json_encode($re).'));';
+				//echo '</script>'; 
+				break;
             case 'init':
-                // $this->bind($param['id'], $param['client_id'], $param['group_id']);
-                // $msg['type'] = 'say';
-                // $msg['content'] = '绑定成功';
-                // Gateway::sendToUid($param['id'], json_encode($msg));
-                $this->bind($param['client_name'], $param['client_id'], $param['group_id']);
+                Gateway::bindUid( $param['client_id'],$param['client_name']);
                 //绑定成功后发送成功消息
                 $msg['type'] = 'login';
                 $msg['client_name'] = $param['client_name'];
-                $msg['content'] = $param['client_name'] . '加入聊天室';
+                $msg['content'] = $param['client_name'] . '上线';
                 $msg['time'] = date('Y-m-d H:i:s', time());
                 $msg['uidCount'] = Gateway::getAllUidCount();
-                $msg['uidAll'] =  Gateway::getAllUidList();//获取所有在线绑定的uid
-                Gateway::sendToGroup($param['group_id'],json_encode($msg));
-                // Gateway::sendToAll( json_encode($msg));
+                $msg['uidAll'] =  [];//获取所有在线绑定的uid
+				$list = [];
+				$list = Gateway::getAllUidList();
+				$list = implode(',',$list);
+				$msg['uidAll'] = explode(',',$list);
+                Gateway::sendToAll(json_encode($msg));
                 break;
             case 'say':
                 $msg['type']='say';
                 $msg['time'] = date('Y-m-d H:i:s', time());
-                if($param['to_uid']){
+                if(!empty($param['to_uid'])){
                     $msg['content'] = $param['content'];
-                    $to_uid = $param['to_uid'];
-                    Gateway::sendToUid($to_uid, json_encode($msg));
-                }elseif($param['to_group_id']){
+					$msg['to_uid'] = $param['to_uid'];
+                    Gateway::sendToUid($param['to_uid'],json_encode($msg));
+                }elseif(!empty($param['to_group_id'])){
                     $msg['content'] = $param['content'];
                     $to_group_id = $param['to_group_id'];
                     Gateway::sendToGroup($to_group_id, json_encode($msg));
                 }
                 break;
             case 'all':
-                // print_r($param['content']);die;
+                $msg['to_uid'] = $param['to_uid'];
                 $msg['type'] = 'all';
                 $msg['time'] = date('Y-m-d H:i:s', time());
                 $msg['content'] = $param['content'];
                 Gateway::sendToAll(json_encode($msg));
                 break;
+			case 'loginout':
+				if($param['client_id']&&$param['client_name']){
+					$msg['content']=$param['client_name'].'退出登录';
+					$msg['type']='loginout';
+					Gateway::closeClient($param['client_id']);
+					Gateway::sendToAll(json_encode($msg));
+				}
             default:
                 break;
         }
-        return;
+        return json(['code'=>0]);
     }
 }
