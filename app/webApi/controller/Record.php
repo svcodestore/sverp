@@ -2,10 +2,10 @@
 /*
  * @Author: yu chen
  * @Date: 2020-12-07 16:23:05
- * @LastEditTime: 2020-12-30 13:52:22
+ * @LastEditTime: 2021-01-20 16:33:14
  * @LastEditors: yu chen
  * @Description: In User Settings Edit
- * @FilePath: \sverp\app\webApi\controller\Record.php
+ * @FilePath: \undefinedc:\Users\admin\Desktop\Record.php
  */
 
 namespace app\webApi\controller;
@@ -15,6 +15,7 @@ namespace app\webApi\controller;
 use app\webApi\model\Record as recordModel;
 use app\webApi\validate\Record as recordValidate;
 use think\exception\ValidateException;
+
 require_once '../vendor/phpqrcode/phpqrcode.php';
 
 class Record
@@ -295,13 +296,13 @@ class Record
       $content['meche_num'] = $param['row']['mache_num'];
       $content['meche_name'] = $param['row']['mache_name'] . $param['cause']; //机器名和初步原因
       $phone = implode(',', $param['arr']);
-      if ($phone && $content['number'] && $content['line_num'] && $content['meche_num'] && $content['meche_name'] ) {
+      if ($phone && $content['number'] && $content['line_num'] && $content['meche_num'] && $content['meche_name']) {
         $res = smsSend($phone, '文迪软件', 'SMS_207970725', $content);
         if ($res['Code'] === 'OK') {
           $data = [
             'mechenum' => $param['row']['mache_num'],
             'alarmtime' => time(),
-            'repairAttr'=>$param['cate']?$param['cate']:'',
+            'repairAttr' => $param['cate'] ? $param['cate'] : '',
             'repairstatus' => 'false',
             'dell_repair' => 0
           ];
@@ -313,25 +314,26 @@ class Record
     } elseif (!empty($param['cause']) && !empty($param['mecheName']) && !empty($param['noticeDepartment'] && !empty($param['noticeName'][0]))) {
 
       $param['phone'] = implode(',', $param['noticeName']);
-      $img=cookie('url');
+      $img = cookie('url');
       $data = [
-        'repair_phone'=>$param['phone'],
-        'repair_create_time'=>time(),
-        'repair_content'=>$param['cause'],
-        'repair_meche'=>$param['mecheName'],
-        'repair_department'=>$param['noticeDepartment'],
-        'repair_img'=>$img?$img:'',
+        'repair_phone' => $param['phone'],
+        'repair_create_time' => time(),
+        'repair_content' => $param['cause'],
+        'repair_meche' => $param['mecheName'],
+        'repair_department' => $param['noticeDepartment'],
+        'repair_img' => $img ? $img : '',
       ];
-      $content=['department'=>$param['noticeDepartment'],'meche'=>$param['mecheName'],'cause'=>$param['cause']];
-      // $res = smsSend($param['phone'] , '文迪软件', '', $content);//发送短信
-      // if ($res['Code'] === 'OK') {
+      $content = ['department' => $param['noticeDepartment'], 'meche' => $param['mecheName'], 'cause' => $param['cause'], 'time' => date('Y-m-d H:i:s', time())];
+      $res = smsSend($param['phone'], '文迪软件', 'SMS_210075241', $content); //发送短信
+      $res['Code'] = 'OK';
+      if ($res['Code'] === 'OK') {
         $record = new recordModel;
         $id = $record->repairLogAdd($data);
-      // }
+      }
     }
     $list['code'] = 1;
     $list['msg'] = '发送失败';
-    if(!empty($id)){
+    if (!empty($id)) {
       $list['code'] = 0;
       $list['msg'] = '发送成功';
     }
@@ -353,7 +355,6 @@ class Record
     if ($list[0]['notify_name'] && $phone && $phoneFour && $id) {
       $data['repairman'] = $list[0]['notify_name'];
       $data['reachtime'] = time();
-      $data['repairAttr'] = '维修';
       $res = $record->updateRecord($id, $data);
       if ($res) {
         $msg['code'] = 0;
@@ -385,8 +386,8 @@ class Record
         $data['status'] = '';
         $data['thumbUrl'] = '';
         $data['url'] = 'http://' . $_SERVER['HTTP_HOST'] . '/static/' . $savename;
-        cookie('imgUrl','http://' . $_SERVER['HTTP_HOST'] . '/static/' . $savename,3600);
-       
+        cookie('imgUrl', 'http://' . $_SERVER['HTTP_HOST'] . '/static/' . $savename, 3600);
+
         // $imgurl=$data['url'];
         // echo '<script>';
         // echo 'localStorage.setItem("imgUrl",'.$imgurl.')';
@@ -396,6 +397,132 @@ class Record
         echo $e->getMessage();
         die;
       }
+    }
+  }
+  /**
+   *获取配件信息
+   *
+   *
+   */
+  public function getFitting()
+  {
+    $record = new recordModel;
+    $field = '*';
+    $where = '';
+    if (request()->param('limit')) {
+      $page = request()->param('page');
+      $limit = request()->param('limit');
+    }
+    $data['result'] = $record->getFitting($field, $where, $page = 0, $limit = 10000);
+    $data['code'] = 0;
+    $data['msg'] = 'success';
+    return json($data);
+  }
+  /**
+   *配件信息数据操作
+   *
+   *
+   */
+  public function saveFitting()
+  {
+    $opt = request()->param('saveFittingList');
+    //print_r($opt);die;
+    if ($opt) {
+      $res = (new recordModel())->saveFitting($opt);
+      $rtn['result'] = $res;
+      return json($rtn);
+    }
+  }
+  /**
+   *配件不足
+   *
+   */
+  public function fittingMsg($phone, $content)
+  {
+    $record = new recordModel;
+    $field = '*';
+    $where = '';
+    if (request()->param('limit')) {
+      $page = request()->param('page');
+      $limit = request()->param('limit');
+    }
+    $result = $record->getFitting($field, $where, $page = 0, $limit = 10000);
+    foreach ($result as $v) {
+      if ($v['fitting_num'] < $v['fitting_msg_number'] && $v['fitting_msg_status'] === 1) {
+        $data['fitting_msg_status'] = -1;
+        $record->updateFitting($v['id'], $data);
+        $res = smsSend($phone, '文迪软件', 'SMS_210070263', $content); //发送短信
+        if ($res['Code'] === 'OK') {
+          //修改状态
+          $msg['code'] = 0;
+          $msg['msg'] = '短信发送成功';
+        }
+      }
+    }
+
+    return $msg;
+  }
+  /**
+   *维修完成
+   *
+   */
+  public function repairComplete()
+  {
+    $params = request()->param('params');
+    if ($params) {
+	  $notice = [];
+      $fitting_name = '';
+      $fitting_number = '';
+      $record = new recordModel;
+      $id = $params['id'];
+      $rows['repairtime'] = time();
+      $rows['repairstatus'] = 'true';
+      $rows['repaircontents'] = $params['content'];
+      $rows['repairmethod'] = $params['action'];
+      $res = $record->updateRecord($id, $rows);
+	
+      if (!empty($res) && !empty($params['number'])) {
+		$list = array_filter($params['number']);
+		
+        foreach ($list as $k => $v) {
+          $where['id'] = $k;
+			$field = '*';
+          if (!empty($v)) {
+            $result = $record->getFitting($field, $where, $page = 0, $limit = 10000);
+			
+          }
+          if (!empty($result) && !empty($result[0]['fitting_num']) && ($result[0]['fitting_num'] - $v) >= 0) {
+			 
+            $data['fitting_num'] = $result[0]['fitting_num'] - $v;
+            $data['fitting_msg_status'] = intval($result[0]['fitting_msg_status']); //由于下一次循环没有定义该值所以需要默认数据库的值
+			 
+            if ($data['fitting_num'] < $result[0]['fitting_msg_number'] && $result[0]['fitting_msg_status'] === 1) {
+              $data['fitting_msg_status'] = -1;
+              $fitting_name .= $result[0]['fitting_name'] . '、';
+              $fitting_number .= $data['fitting_num'] . '、';
+            }
+            $r=$record->updateFitting($k, $data);
+          } else {
+            $msg['msg'] = '配件不足';
+          }
+        }
+		$fitting_name=mb_substr($fitting_name,0,-1,"UTF-8");
+		$fitting_number=mb_substr($fitting_number,0,-1,"UTF-8");
+        if (!empty($fitting_name) && !empty($fitting_number)) {
+		$notice['fitting']=$fitting_name;
+		$notice['number']=$fitting_number;
+        $notice['time'] = date('Y-m-d H:i:s', time());
+        $phone = '15391033249';
+		$respon = [];
+          $respon = smsSend($phone, '文迪软件', 'SMS_210070263', $notice); //发送短信
+          if ($respon['Code'] === 'OK') {
+            //修改状态
+            $msg['msg'] = '短信发送成功';
+          }
+        }
+      }
+      $msg['code'] = 0;
+      return json($msg);
     }
   }
 }

@@ -10,11 +10,11 @@ namespace app\webApi\api;
 use app\BaseController;
 use app\webApi\controller\Chat as ControllerChat;
 
-class Chat
+class Chat extends BaseController
 {
-  public function apiTest()
+  public function apiChat()
     {
       
-        return (new ControllerChat())->test();
+        return (new ControllerChat())->chat();
     }
 }
