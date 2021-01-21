@@ -2,7 +2,7 @@
 /*
  * @Author: yu chen
  * @Date: 2020-12-07 16:23:05
- * @LastEditTime: 2021-01-21 15:54:42
+ * @LastEditTime: 2021-01-21 16:01:18
  * @LastEditors: yu chen
  * @Description: In User Settings Edit
  * @FilePath: \sverp-frontd:\phpstudy_pro\WWW\git\test\sverp\app\webApi\controller\Record.php
@@ -512,7 +512,7 @@ class Record
           $notice['number'] = $fitting_number;
           $notice['time'] = date('Y-m-d H:i:s', time());
           $phone = '';
-          $whereArr['notice_people'] = 2;
+          $whereArr['notify_people'] = 2;
           $noticeArr = $record->getNotify('notify_people,notify_phone', $whereArr, 0, 1000);
           foreach ($noticeArr as $key => $value) {
             $phone .= $value['notify_phone'] . ',';
