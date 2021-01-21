@@ -4,7 +4,7 @@ declare(strict_types=1);
 /*
 * @Author: yanbuw1911
 * @Date: 2021-01-07 14:18:07
- * @LastEditTime: 2021-01-16 16:57:03
+ * @LastEditTime: 2021-01-21 13:10:29
  * @LastEditors: yanbuw1911
 * @Description:
  * @FilePath: \backend\app\webApi\api\Hrd.php
@@ -37,13 +37,28 @@ class Hrd extends BaseController
         return (new ControllerHrd())->getOutboundOrder();
     }
 
-    public function getOutboundMaterial()
+    public function getOutboundMaterialList()
     {
-        return (new ControllerHrd())->getOutboundMaterial();
+        return (new ControllerHrd())->getOutboundMaterialList();
     }
 
     public function getMaterialLogList()
     {
         return (new ControllerHrd())->getMaterialLogList();
+    }
+
+    public function setMaterialStock()
+    {
+        return (new ControllerHrd())->setMaterialStock();
+    }
+
+    public function setOutboundMaterialOrder()
+    {
+        return (new ControllerHrd())->setOutboundMaterialOrder();
+    }
+
+    public function approveOutbound()
+    {
+        return (new ControllerHrd())->approveOutbound();
     }
 }

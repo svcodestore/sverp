@@ -4,7 +4,7 @@ declare(strict_types=1);
 /*
 * @Author: yanbuw1911
 * @Date: 2021-01-07 14:15:16
- * @LastEditTime: 2021-01-16 16:56:53
+ * @LastEditTime: 2021-01-21 13:10:14
  * @LastEditors: yanbuw1911
 * @Description:
  * @FilePath: \backend\app\webApi\controller\Hrd.php
@@ -50,11 +50,11 @@ class Hrd
         return json($rtn);
     }
 
-    public function getOutboundMaterial()
+    public function getOutboundMaterialList()
     {
         $materialId = input('post.materialId');
         $rtn['result'] = true;
-        $rtn['data'] = (new ModelHrd())->outboundMaterial($materialId);
+        $rtn['data'] = (new ModelHrd())->outboundMaterialList($materialId);
 
         return json($rtn);
     }
@@ -64,6 +64,30 @@ class Hrd
         $materialId = input('post.materialId');
         $rtn['result'] = true;
         $rtn['data'] = (new ModelHrd())->materialLogList($materialId);
+
+        return json($rtn);
+    }
+
+    public function setMaterialStock()
+    {
+        $params = input();
+        $rtn['result'] = (new ModelHrd())->setMaterialStock($params['data'], $params['usr']);
+
+        return json($rtn);
+    }
+
+    public function setOutboundMaterialOrder()
+    {
+        $params = input();
+        $rtn['result'] = (new ModelHrd())->outboundMaterialOrder($params['data'], $params['usr']);
+
+        return json($rtn);
+    }
+
+    public function approveOutbound()
+    {
+        $data = input();
+        $rtn['result'] = (new ModelHrd())->outboundApprove($data);
 
         return json($rtn);
     }

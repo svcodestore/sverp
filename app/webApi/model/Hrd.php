@@ -4,7 +4,7 @@ declare(strict_types=1);
 /*
 * @Author: yanbuw1911
 * @Date: 2021-01-07 14:07:28
- * @LastEditTime: 2021-01-21 07:49:25
+ * @LastEditTime: 2021-01-21 14:19:11
  * @LastEditors: yanbuw1911
 * @Description:
  * @FilePath: \backend\app\webApi\model\Hrd.php
@@ -92,7 +92,7 @@ class Hrd
         return $res;
     }
 
-    public function outboundMaterial(string $outboundId): array
+    public function outboundMaterialList(string $outboundId): array
     {
         $t      = 'hrdlib_outbound_material';
         $fields = ['a.*', 'm.hmu_material_name', 'm.hmu_material_code', 'm.hmu_material_model', 'm.hmu_material_unit'];
@@ -107,14 +107,127 @@ class Hrd
         return $res;
     }
 
-    public function outboundApprove(string $outboundId): bool
+    public function setMaterialStock(array $data, string $usr): bool
     {
+        Db::startTrans();
+
+        if ($data['operType'] === 'put') {
+            $sql = "UPDATE hrdlib_material_used 
+                    SET hmu_material_stock = hmu_material_stock + ?,
+                    hmu_material_modifier = ?
+                    WHERE
+                    id = ?";
+        } else if ($data['operType'] === 'set') {
+            $sql = "UPDATE hrdlib_material_used 
+                    SET hmu_material_stock = ?,
+                    hmu_material_modifier = ?
+                    WHERE
+                    id = ?";
+        }
+
+        $res = Db::execute($sql, [$data['qty'], $usr, $data['id']]);
+        $flag = false !== $res;
+        if ($flag) {
+            $flag = $this->materialStockLog($data, $usr);
+        }
+        if ($flag) {
+            Db::commit();
+        } else {
+            Db::rollback();
+        }
+
+        return $flag;
+    }
+
+    public function materialStockLog(array $data, string $usr): bool
+    {
+        $t   = 'hrdlib_material_log';
+        $row = [
+            'hml_material_id'  => $data['materialId'],
+            'hml_operate_qty'  => $data['qty'],
+            'hml_operate_type' => $data['operType'],
+            'hml_creator'      => $usr,
+        ];
+        $res = Db::table($t)->insert($row);
+
+        return false !== $res;
+    }
+
+    public function outboundMaterialOrder(array $data, array $usr): bool
+    {
+        Db::startTrans();
+
+        $flag = false;
+
+        $row = [
+            'hoo_order_id' => $data['orderNo'],
+            'hoo_applicant' => $usr['dept'],
+            'hoo_creator' => $usr['name'],
+            'hoo_modifier' => $usr['name']
+        ];
+        $t = 'hrdlib_outbound_order';
+        $id = Db::table($t)->insertGetId($row);
+
+        if ($id !== false) {
+            $rows = array_map(function ($e) use ($id) {
+                return [
+                    'hom_outbound_id' => $id,
+                    'hom_material_id' => $e['materialId'],
+                    'hom_apply_qty' => $e['qty'],
+                    'hom_out_qty' => $e['qty'],
+                    'hom_remark' => $e['remark'],
+                ];
+            }, $data['applyList']);
+            $t1 = 'hrdlib_outbound_material';
+            $res = Db::table($t1)->insertAll($rows);
+
+            if ($res !== false) {
+                $logRows = array_map(function ($e) use ($usr) {
+                    return [
+                        'hml_material_id'  => $e['materialId'],
+                        'hml_operate_qty'  => $e['qty'],
+                        'hml_operate_type' => 'out',
+                        'hml_creator'      => $usr['name'],
+                    ];
+                }, $data['applyList']);
+                $t2 = 'hrdlib_material_log';
+                $flag =  false !== Db::table($t2)->insertAll($logRows);
+            }
+        }
+
+        if ($flag) {
+            Db::commit();
+        } else {
+            Db::rollback();
+        }
+
+        return $flag;
+    }
+
+    public function outboundApprove(array $data): bool
+    {
+        Db::startTrans();
+
+        $flag =  false;
+
         $t   = 'hrdlib_outbound_order';
         $res = Db::table($t)
-            ->where('id', $outboundId)
+            ->where('id', $data['outboundId'])
             ->update(['hoo_is_approvee' => 1]);
 
-        return $res !== false;
+        $flag = $res !== false;
+        if ($flag) {
+            if (isset($data['modify'])) {
+                $flag = Common::handleOpt('hrdlib_outbound_material', $data['modify']);
+            }
+        }
+        if ($flag) {
+            Db::commit();
+        } else {
+            Db::rollback();
+        }
+
+        return $flag;
     }
 
     public function materialLogList(string $materialId): array
