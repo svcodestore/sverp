@@ -2,7 +2,7 @@
 /*
 * @Author: yanbuw1911
 * @Date: 2020-12-14 16:50:20
- * @LastEditTime: 2020-12-18 09:15:15
+ * @LastEditTime: 2021-01-21 16:15:36
  * @LastEditors: yanbuw1911
 * @Description:
  * @FilePath: \backend\app\webApi\model\Common.php
@@ -18,11 +18,15 @@ class Common
      * @description: 处理表的编辑
      * @param string $tableName 表名
      * @param array $opt 变更数据
+     * @param bool $transaction 是否开启事务，默认开启
      * @return bool
      */
-    public static function handleOpt(string $tableName, array $opt): bool
+    public static function handleOpt(string $tableName, array $opt, bool $transaction = true): bool
     {
-        Db::startTrans();
+        if ($transaction) {
+            Db::startTrans();
+        }
+
         $flag = true;
         foreach ($opt as $optype => $data) {
             if ($optype == 'A') {
@@ -51,10 +55,12 @@ class Common
                 $flag  = $flag && false !== self::handleDelete($tableName, $data['id']);
             }
         }
-        if ($flag) {
-            Db::commit();
-        } else {
-            Db::rollback();
+        if ($transaction) {
+            if ($flag) {
+                Db::commit();
+            } else {
+                Db::rollback();
+            }
         }
 
         return $flag;
