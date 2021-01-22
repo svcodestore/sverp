@@ -4,7 +4,7 @@ declare(strict_types=1);
 /*
 * @Author: yanbuw1911
 * @Date: 2021-01-07 14:07:28
- * @LastEditTime: 2021-01-21 17:02:18
+ * @LastEditTime: 2021-01-22 09:09:46
  * @LastEditors: yanbuw1911
 * @Description:
  * @FilePath: \backend\app\webApi\model\Hrd.php
@@ -84,8 +84,10 @@ class Hrd
         $res = Db::table($t)
             ->alias('a')
             ->join('commonlib_dept_workline d', 'a.hoo_applicant=d.cdw_code')
-            ->field(['a.*', 'd.cdw_name'])
-            ->order('hoo_is_approved')
+            ->leftJoin('starvc_syslib.syslib_user_home b', 'a.hoo_approver=b.con_id')
+            ->leftJoin('starvc_syslib.syslib_user_home c', 'a.hoo_creator=c.con_id')
+            ->field(['a.*', 'd.cdw_name', 'c.con_name as creator_name', 'c.con_id as creator_id', 'b.con_name as approver_name'])
+            ->order(['a.hoo_is_approved', 'a.hoo_join_date' => 'desc'])
             ->select()
             ->toArray();
 
@@ -184,9 +186,9 @@ class Hrd
                 return [
                     'hom_outbound_id' => $id,
                     'hom_material_id' => $e['materialId'],
-                    'hom_apply_qty' => $e['qty'],
-                    'hom_out_qty' => $e['qty'],
-                    'hom_remark' => $e['remark'],
+                    'hom_apply_qty'   => $e['qty'],
+                    'hom_out_qty'     => $e['qty'],
+                    'hom_remark'      => $e['remark'],
                 ];
             }, $data['applyList']);
             $t1 = 'hrdlib_outbound_material';
@@ -242,6 +244,8 @@ class Hrd
             ->where('hml_material_id', $materialId)
             ->alias('a')
             ->join('hrdlib_material_used b', 'a.hml_material_id=b.id')
+            ->leftJoin('starvc_syslib.syslib_user_home c', 'a.hml_creator=c.con_id')
+            ->field(['a.*', 'b.*', 'c.con_name'])
             ->order('a.hml_join_date', 'desc')
             ->select()
             ->toArray();
