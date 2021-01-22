@@ -2,10 +2,10 @@
 /*
  * @Author: yu chen
  * @Date: 2020-12-07 16:23:05
- * @LastEditTime: 2021-01-21 16:01:18
+ * @LastEditTime: 2021-01-22 14:21:55
  * @LastEditors: yu chen
  * @Description: In User Settings Edit
- * @FilePath: \sverp-frontd:\phpstudy_pro\WWW\git\test\sverp\app\webApi\controller\Record.php
+ * @FilePath: \sverp\app\webApi\controller\Record.php
  */
 
 namespace app\webApi\controller;
@@ -93,7 +93,11 @@ class Record
       $field = 'r.id,r.mechenum,r.alarmtime,r.reachtime,r.repaircontents,r.repairmethod,r.repairman,r.repairtime,r.repairAttr,r.repairstatus,m.mache_name';
       $data['data'] = $record->repair_record($field, $cnd, $page = 0, $limit = 10000);
       foreach ($data['data'] as $key => $value) {
-        $data['data'][$key]['expendtime'] = intval($value['repairtime']) - intval($value['alarmtime']);
+        if (!empty(intval($value['repairtime']))) {
+          $data['data'][$key]['expendtime'] = (intval($value['repairtime']) - intval($value['alarmtime'])) / 60;
+        } else {
+          $data['data'][$key]['expendtime'] = 0;
+        }
         $data['data'][$key]['alarmtime'] = date('Y-m-d H:i:s', $value['alarmtime']);
         $data['data'][$key]['reachtime'] = date('Y-m-d H:i:s', $value['reachtime']);
         $data['data'][$key]['repairtime'] = date('Y-m-d H:i:s', $value['repairtime']);
@@ -177,7 +181,7 @@ class Record
     // }
   }
   /**
-   * 维修增删查改接口
+   * 机器增删查改接口
    * @param 
    * @return json
    */
@@ -491,16 +495,15 @@ class Record
             $result = $record->getFitting($field, $where, $page = 0, $limit = 10000);
           }
           if (!empty($result) && !empty($result[0]['fitting_num']) && ($result[0]['fitting_num'] - $v) >= 0) {
-
             $data['fitting_num'] = $result[0]['fitting_num'] - $v;
+            $data['fitting_consume_num'] = $result[0]['fitting_num'] + $v;
             $data['fitting_msg_status'] = intval($result[0]['fitting_msg_status']); //由于下一次循环没有定义该值所以需要默认数据库的值
-
             if ($data['fitting_num'] < $result[0]['fitting_msg_number'] && $result[0]['fitting_msg_status'] === 1) {
               $data['fitting_msg_status'] = -1;
               $fitting_name .= $result[0]['fitting_name'] . '、';
               $fitting_number .= $data['fitting_num'] . '、';
             }
-            $r = $record->updateFitting($k, $data);
+            $record->updateFitting($k, $data);
           } else {
             $msg['msg'] = '配件不足';
           }

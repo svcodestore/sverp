@@ -2,7 +2,7 @@
 /*
  * @Author: yu chen
  * @Date: 2020-12-07 16:16:43
- * @LastEditTime: 2020-12-28 16:45:27
+ * @LastEditTime: 2021-01-22 14:55:42
  * @LastEditors: yu chen
  * @Description: In User Settings Edit
  * @FilePath: \sverp\app\webApi\model\Record.php
@@ -131,6 +131,7 @@ class Record
       if ($k == 'A') {
         foreach ($v as $ks => $vs) {
           unset($v[$ks]['id']);
+          $v[$ks]['create_time'] = date('Y-m-d H:i:s',time());
         }
         $flag = $flag && false !== $this->addMeche($v);
       }
@@ -143,7 +144,6 @@ class Record
         }
       }
       if ($k == 'D') {
-
         $flag  = $flag && false !== $this->delMeche($v['id']);
       }
     }
