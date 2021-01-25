@@ -4,7 +4,7 @@ declare(strict_types=1);
 /*
 * @Author: yanbuw1911
 * @Date: 2021-01-07 14:07:28
- * @LastEditTime: 2021-01-22 09:09:46
+ * @LastEditTime: 2021-01-22 10:48:00
  * @LastEditors: yanbuw1911
 * @Description:
  * @FilePath: \backend\app\webApi\model\Hrd.php
@@ -86,8 +86,21 @@ class Hrd
             ->join('commonlib_dept_workline d', 'a.hoo_applicant=d.cdw_code')
             ->leftJoin('starvc_syslib.syslib_user_home b', 'a.hoo_approver=b.con_id')
             ->leftJoin('starvc_syslib.syslib_user_home c', 'a.hoo_creator=c.con_id')
-            ->field(['a.*', 'd.cdw_name', 'c.con_name as creator_name', 'c.con_id as creator_id', 'b.con_name as approver_name'])
-            ->order(['a.hoo_is_approved', 'a.hoo_join_date' => 'desc'])
+            ->field(
+                [
+                    'a.*',
+                    'd.cdw_name',
+                    'c.con_name as creator_name',
+                    'c.con_id as creator_id',
+                    'b.con_name as approver_name'
+                ]
+            )
+            ->order(
+                [
+                    'a.hoo_is_approved',
+                    'a.hoo_join_date' => 'desc'
+                ]
+            )
             ->select()
             ->toArray();
 
