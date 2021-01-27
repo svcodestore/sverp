@@ -104,6 +104,7 @@ class Chat
                 $msg['type']='say';
                 $msg['time'] = date('Y-m-d H:i:s', time());
                 if(!empty($param['to_uid'])){
+					$msg['uid'] = $param['uid'];
                     $msg['content'] = $param['content'];
 					$msg['to_uid'] = $param['to_uid'];
                     Gateway::sendToUid($param['to_uid'],json_encode($msg));
@@ -121,10 +122,16 @@ class Chat
                 Gateway::sendToAll(json_encode($msg));
                 break;
 			case 'loginout':
-				if($param['client_id']&&$param['client_name']){
-					$msg['content']=$param['client_name'].'退出登录';
-					$msg['type']='loginout';
-					Gateway::closeClient($param['client_id']);
+				if($param['clientId']&&$param['clientName']){
+					$msg['content']=$param['clientName'].'退出登录';
+					$msg['type']='logout';
+					Gateway::closeClient($param['clientId']);
+					$msg['uidCount'] = Gateway::getAllUidCount();
+					$msg['uidAll'] =  [];//获取所有在线绑定的uid
+					$list = [];
+					$list = Gateway::getAllUidList();
+					$list = implode(',',$list);
+					$msg['uidAll'] = explode(',',$list);
 					Gateway::sendToAll(json_encode($msg));
 				}
             default:
