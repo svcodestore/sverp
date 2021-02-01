@@ -12,9 +12,14 @@ use app\webApi\controller\Chat as ControllerChat;
 
 class Chat extends BaseController
 {
-  public function apiChat()
+	public function apiChat()
     {
       
         return (new ControllerChat())->chat();
+    }
+	public function apiChatRecord()
+    {
+      
+        return (new ControllerChat())->getChatList();
     }
 }
