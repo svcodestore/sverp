@@ -67,7 +67,6 @@ class Chat
     public function chat()
     {
         $param = input();
-		
         // print_r($param);die;
         switch ($param['type']) {
 			case 'pong':
