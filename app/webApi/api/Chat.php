@@ -17,4 +17,9 @@ class Chat extends BaseController
       
         return (new ControllerChat())->chat();
     }
+	public function apiChatRecord()
+    {
+      
+        return (new ControllerChat())->getChatList();
+    }
 }
