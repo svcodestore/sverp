@@ -2,7 +2,7 @@
 /*
  * @Date: 2020-12-30 16:47:57
  * @LastEditors: yu chen
- * @LastEditTime: 2021-02-01 08:30:14
+ * @LastEditTime: 2021-02-03 11:31:01
  * @FilePath: \sverp\app\webApi\controller\Chat.php
  */
 
@@ -45,6 +45,13 @@ class Chat
 			// print_r($param);die;
 			switch ($param['type']) {
 				case 'init':
+					if (empty($this->redis->hget($param['client_name'], 'imgUrl'))) {
+						$number = mt_rand(1, 38);
+						$msg['imgUrl'] = 'http://192.168.123.51:8088/static/header/' . $number . '.jpg';
+                        $this->redis->hset($param['client_name'], 'imgUrl', $msg['imgUrl']);
+                        $this->redis->hset($param['client_name'], 'desc', '生活远不止眼前的苟且，还有诗和远方');
+					}
+					$msg['imgUrl'] = $this->redis->hget($param['client_name'], 'imgUrl');
 					Gateway::bindUid( $param['client_id'],$param['client_name']);
 					//绑定成功后发送成功消息
 					$msg['type'] = 'login';
@@ -53,10 +60,16 @@ class Chat
 					$msg['time'] = date('Y-m-d H:i:s', time());
 					$msg['uidCount'] = Gateway::getAllUidCount();
 					$msg['uidAll'] =  [];//获取所有在线绑定的uid
-					$list = [];
-					$list = Gateway::getAllUidList();
-					$list = implode(',',$list);
-					$msg['uidAll'] = explode(',',$list);
+                    $userList = Gateway::getAllUidList();
+                    foreach($userList as $v){
+						$msg['uidAll'][]=[
+							'name'=>$v,
+							'imgUrl'=>$this->redis->hget($v, 'imgUrl'),
+							'desc'=>$this->redis->hget($v, 'desc')
+						];
+                    }
+					// $list = implode(',',$list);
+					// $msg['uidAll'] = explode(',',$list);
 					Gateway::sendToAll(json_encode($msg));
 					$this->redis->hset('userinfo',$param['client_name'],$param['client_id']);
 					break;
