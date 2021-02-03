@@ -2,7 +2,7 @@
 /*
  * @Date: 2020-12-30 16:47:57
  * @LastEditors: yu chen
- * @LastEditTime: 2021-02-03 13:16:09
+ * @LastEditTime: 2021-02-03 16:29:13
  * @FilePath: \sverp\app\webApi\controller\Chat.php
  */
 
@@ -41,7 +41,6 @@ class Chat
     {
         $param = input();
         if (!empty($param['type'])) {
-
             // print_r($param);die;
             switch ($param['type']) {
                 case 'init':
@@ -51,10 +50,10 @@ class Chat
                         $this->redis->hset($param['client_name'], 'imgUrl', $msg['imgUrl']);
                         $this->redis->hset($param['client_name'], 'desc', '生活远不止眼前的苟且，还有诗和远方');
                     }
-                    $msg['imgUrl'] = $this->redis->hget($param['client_name'], 'imgUrl');
                     Gateway::bindUid($param['client_id'], $param['client_name']);
                     //绑定成功后发送成功消息
                     $msg['type'] = 'login';
+                    $msg['imgUrl'] =  $this->redis->hget($param['client_name'], 'imgUrl');
                     $msg['client_name'] = $param['client_name'];
                     $msg['content'] = $param['client_name'] . '上线';
                     $msg['time'] = date('Y-m-d H:i:s', time());
@@ -68,8 +67,6 @@ class Chat
                             'desc' => $this->redis->hget($v, 'desc')
                         ];
                     }
-                    // $list = implode(',',$list);
-                    // $msg['uidAll'] = explode(',',$list);
                     Gateway::sendToAll(json_encode($msg));
                     $this->redis->hset('userinfo', $param['client_name'], $param['client_id']);
                     break;
@@ -82,6 +79,8 @@ class Chat
                             $msg['content'] = $param['content'];
                             $msg['to_uid'] = $param['to_uid'];
                             if ($this->setChatRecord($param['uid'], $param['to_uid'], $param['content']) !== false) {
+								$msg['to_headerImg'] = $this->redis->hget($param['to_uid'],'imgUrl');
+                                $msg['headerImg'] = $this->redis->hget($param['uid'],'imgUrl');
                                 Gateway::sendToUid($param['to_uid'], json_encode($msg));
                             }
                         } elseif (!empty($param['to_group_id'])) {
@@ -98,6 +97,7 @@ class Chat
                     if (!empty($this->redis->hget('userinfo', $param['uid']))) {
                         $msg['uid'] = $param['uid'];
                         $msg['type'] = 'all';
+						$msg['to_headerImg'] = $param['to_headerImg'];
                         $msg['time'] = date('Y-m-d H:i:s', time());
                         $msg['content'] = $param['content'];
                         //if($this->setChatRecord($param['uid'],$param['content'])!==false){
@@ -144,6 +144,8 @@ class Chat
     {
         $params = input();
         $rtn['result'] = $this->getChatRecord($params['uid'], $params['toUid'], 15);
+		$rtn['headerImg'] = $this->redis->hget($params['uid'], 'imgUrl');
+        $rtn['to_headerImg'] = $this->redis->hget($params['toUid'], 'imgUrl');
         $rtn['code'] = 0;
         return    json($rtn);
     }
@@ -245,6 +247,7 @@ class Chat
     protected function getChatRecord($from, $to, $num)
     {
         $keyName = 'rec:' . $this->getRecKeyName($from, $to);
+		
         //$this -> redis ->LTRIM ($keyName,0,0);
         //echo $keyName;
         $recList = $this->redis->lRange($keyName, -$num, -1);
