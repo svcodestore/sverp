@@ -2,7 +2,7 @@
 /*
  * @Date: 2020-12-30 16:47:57
  * @LastEditors: yu chen
- * @LastEditTime: 2021-02-03 16:29:13
+ * @LastEditTime: 2021-02-04 14:58:41
  * @FilePath: \sverp\app\webApi\controller\Chat.php
  */
 
@@ -18,7 +18,6 @@ require_once '../vendor/autoload.php';
 class Chat
 {
     private $redis;
-    public $checkUserReadable = false;
     public function __construct()
     {
         $this->redis = new \RedisConnect();
@@ -79,8 +78,7 @@ class Chat
                             $msg['content'] = $param['content'];
                             $msg['to_uid'] = $param['to_uid'];
                             if ($this->setChatRecord($param['uid'], $param['to_uid'], $param['content']) !== false) {
-								$msg['to_headerImg'] = $this->redis->hget($param['to_uid'],'imgUrl');
-                                $msg['headerImg'] = $this->redis->hget($param['uid'],'imgUrl');
+								$msg['to_headerImg'] = $this->redis->hget($param['uid'],'imgUrl');
                                 Gateway::sendToUid($param['to_uid'], json_encode($msg));
                             }
                         } elseif (!empty($param['to_group_id'])) {
@@ -147,7 +145,19 @@ class Chat
 		$rtn['headerImg'] = $this->redis->hget($params['uid'], 'imgUrl');
         $rtn['to_headerImg'] = $this->redis->hget($params['toUid'], 'imgUrl');
         $rtn['code'] = 0;
-        return    json($rtn);
+        $this->setUnreadToRead($params['uid'],$params['toUid']);
+        return  json($rtn);
+    }
+    /**
+     *未读的用户消息数量 
+     * 
+     * 
+     */
+    public function getUnreadCount()
+    {
+        $params = request()->param('uid');
+        //我的未读消息有几个用户发来
+        return $this->redis->hlen($params['uid']);
     }
     /**
      *设置键名
@@ -177,7 +187,7 @@ class Chat
      * @from 发送消息的用户id
      * @to 接收消息的用户id
      *
-     * 返回值，当前两个用户聊天中的未读消息
+     * 返回值，当前两个用户聊天中的未读消息数量
      *
      */
     private function cacheUnreadMsg($from, $to)
@@ -196,8 +206,7 @@ class Chat
      */
     protected function getUnreadMsg($from, $to)
     {
-        $countArr = $this->getUnreadMsgCount($to);
-        $count = $countArr;
+        $count = $this->getUnreadMsgCount($to);
         $keyName = 'rec:' . $this->getRecKeyName($from, $to);
         return $this->redis->lRange($keyName, 0, (int)($count));
     }
@@ -232,9 +241,7 @@ class Chat
         $keyName = 'rec:' . $this->getRecKeyName($from, $to);
         //echo $keyName;
         $res = $this->redis->rPush($keyName, $value);
-        if (false !== $this->checkUserReadable) { //消息接受者无法立刻查看时，将消息设置为未读
-            $this->cacheUnreadMsg($from, $to);
-        }
+        $this->cacheUnreadMsg($from, $to);
         return $res;
     }
     /*
