@@ -2,10 +2,10 @@
 /*
 * @Author: yanbuw1911
 * @Date: 2020-12-29 10:47:11
- * @LastEditTime: 2020-12-29 14:16:50
+ * @LastEditTime: 2021-02-05 08:47:49
  * @LastEditors: yanbuw1911
 * @Description:
- * @FilePath: \backend\app\webApi\controller\Mis.php
+ * @FilePath: /sverp/app/webApi/controller/Mis.php
 */
 
 namespace app\webApi\controller;
@@ -32,8 +32,17 @@ class Mis
                 echo fread($handle, 1024);
             }
             fclose($handle); //关闭文件句柄
-            echo 111;
             exit;
         }
+    }
+
+    public function sysUpdate()
+    {
+        $cmd = '@echo off 
+        D: 
+        cd vhost/www.sverp.com && "C:\Program Files\Git\bin\git.exe" pull origin main && cd ../webapp && "C:\Program Files\Git\bin\git.exe" pull origin main && npm install && npm run build && npm run docs:build:man && npm run docs:build:dev';
+        $res = exec($cmd);
+
+        return $res;
     }
 }
