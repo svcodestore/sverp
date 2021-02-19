@@ -2,10 +2,10 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-04 08:50:09
- * @LastEditTime: 2021-01-16 16:03:47
+ * @LastEditTime: 2021-02-19 09:54:14
  * @LastEditors: yanbuw1911
  * @Description: 
- * @FilePath: \backend\app\webApi\api\Test.php
+ * @FilePath: /sverp/app/webApi/api/Test.php
  */
 
 namespace app\webApi\api;
@@ -219,5 +219,171 @@ English / 正體中文 123 Chinese 测试 测试测
         }
 
         return json($apiList);
+    }
+
+    public function transferMaterialStock()
+    {
+        // --------------  从老系统中获取用料库存操作数据 ------------------ //
+        // $conn = mysqli_connect('192.168.123.51', 'root', 'root', 'star_cfo');
+        // $sql = "select a.stock,a.create_time,a.type,a.author,b.goods_name from cfo_goods_stock as a,cfo_goods as b where a.goods_id = b.id";
+        // $res = mysqli_fetch_all(mysqli_query($conn, $sql), MYSQLI_ASSOC);
+
+        // $dbh = new \PDO("mysql:host=127.0.0.1;dbname=starvc_homedb;port=3306", 'root', 'root');
+        // $sql = "SELECT * FROM `hrdlib_material_used`";
+        // $res2 = $dbh->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
+        // $values = [];
+        // foreach ($res as $v) {
+        //     foreach ($res2 as $v2) {
+        //         if ($v['goods_name'] == $v2['hmu_material_name']) {
+        //             $t = '';
+        //             switch ($v['type']) {
+        //                 case '0':
+        //                     $t = 'set';
+        //                     break;
+        //                 case '1':
+        //                     $t = 'put';
+        //                     break;
+        //                 case '2':
+        //                     $t = 'out';
+        //                     break;
+        //             }
+        //             $values[] = [
+        //                 'hml_material_id' => $v2['id'],
+        //                 'hml_operate_qty' => $v['stock'],
+        //                 'hml_operate_type' => $t,
+        //                 'hml_creator' => $v['author'],
+        //                 'hml_join_date' => $v['create_time'] ? date('Y-m-d H:i:s', $v['create_time']) : $v['create_time'],
+        //             ];
+
+        //             continue;
+        //         }
+        //     }
+        // }
+        // dd(Db::table('hrdlib_material_log')->insertAll($values));
+        // --------------  从老系统中获取用料库存操作数据 ------------------ //
+
+        // -------------- 从老系统中获取用料出料订单数据 ------------------ //
+        // $conn = mysqli_connect('192.168.123.51', 'root', 'root', 'star_cfo');
+        // $sql = "select * from cfo_goods_order";
+        // $res = mysqli_fetch_all(mysqli_query($conn, $sql), MYSQLI_ASSOC);
+
+        // $rows = array_map(function ($e) {
+
+        //     switch ($e['supplier']) {
+        //         case '制一线':
+        //             $supplier = 'WL1';
+        //             break;
+        //         case '制二线':
+        //             $supplier = 'WL2';
+        //             break;
+        //         case '制三线':
+        //             $supplier = 'WL3';
+        //             break;
+        //         case '制四线':
+        //             $supplier = 'WL4';
+        //             break;
+        //         case '制五线':
+        //             $supplier = 'WL5';
+        //             break;
+        //         case '制六线':
+        //             $supplier = 'WL6';
+        //             break;
+        //         case '制七线':
+        //             $supplier = 'WL7';
+        //             break;
+        //         case '制八线':
+        //             $supplier = 'WL8';
+        //             break;
+        //         case '制九线':
+        //             $supplier = 'WL9';
+        //             break;
+        //         case '制十线':
+        //             $supplier = 'WL10';
+        //             break;
+        //         case '物管课':
+        //             $supplier = 'PMD';
+        //             break;
+        //         case '人资管理部':
+        //             $supplier = 'HRD';
+        //             break;
+        //         case '业务科':
+        //             $supplier = 'BS';
+        //             break;
+        //         case '研发科':
+        //             $supplier = 'R&D';
+        //             break;
+        //         case '生管课':
+        //             $supplier = 'PROD';
+        //             break;
+        //         case '生产部':
+        //             $supplier = 'PROD';
+        //             break;
+        //         case '生產部':
+        //             $supplier = 'PROD';
+        //             break;
+        //         case 'TPM':
+        //             $supplier = 'TPM';
+        //             break;
+        //         case '品保中心':
+        //             $supplier = 'QAC';
+        //             break;
+        //         case '采购科':
+        //             $supplier = 'PD';
+        //             break;
+        //         default:
+        //             $supplier = null;
+        //             break;
+        //     }
+        //     return [
+        //         'hoo_order_id' => $e['order_id'],
+        //         'hoo_applicant' => $supplier,
+        //         'hoo_is_approved' => $e['is_audit'],
+        //         'hoo_join_date' => $e['daytime'] !== '0' ? date('Y-m-d H:i:s', $e['daytime']) : null,
+        //         'hoo_creator' => $e['user']
+        //     ];
+        // }, $res);
+
+        // Db::table('hrdlib_outbound_order')->insertAll($rows);
+        // -------------- 从老系统中获取用料出料订单数据 ------------------ //
+
+        // -------------- 从老系统中获取用料出料详细数据 ------------------ //
+        // $conn = mysqli_connect('192.168.123.51', 'root', 'root', 'star_cfo');
+        // $sql = "select a.*, b.order_id,c.goods_name from star_cfo.cfo_goods_order_sub as a, cfo_goods_order as b, cfo_goods as c where a.goods_id = c.id and a.order_id = b.id";
+        // $res = mysqli_fetch_all(mysqli_query($conn, $sql), MYSQLI_ASSOC);
+
+        // $dbh = new \PDO("mysql:host=127.0.0.1;dbname=starvc_homedb;port=3306", 'root', 'root');
+        // $sql = "SELECT * FROM `hrdlib_material_used`";
+        // $res2 = $dbh->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
+
+        // $rows = array_map(function ($e) {
+        //     return [
+        //         'hom_outbound_id' => $e['order_id'],
+        //         'hom_material_id' => $e['goods_name'],
+        //         'hom_apply_qty' => $e['count'],
+        //         'hom_out_qty' => $e['true_count'],
+        //         'hom_remark' => $e['desc']
+        //     ];
+        // }, $res);
+        // foreach ($rows as $k => $v) {
+        //     foreach ($res2 as $value) {
+        //         if ($value['hmu_material_name'] === $v['hom_material_id']) {
+        //             $rows[$k]['hom_material_id'] = $value['id'];
+        //             continue;
+        //         }
+        //     }
+        // }
+        // $sql = "SELECT * FROM `hrdlib_outbound_order`";
+        // $res3 = $dbh->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
+        // foreach ($rows as $k => $v) {
+        //     foreach ($res3 as $value) {
+        //         if ($value['hoo_order_id'] === $v['hom_outbound_id']) {
+        //             $rows[$k]['hom_outbound_id'] = $value['id'];
+        //             continue;
+        //         }
+        //     }
+        // }
+
+        // dd(Db::table('hrdlib_outbound_material')->insertAll($rows));
+        // -------------- 从老系统中获取用料出料详细数据 ------------------ //
     }
 }
