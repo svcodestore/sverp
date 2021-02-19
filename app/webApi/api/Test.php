@@ -2,7 +2,7 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-04 08:50:09
- * @LastEditTime: 2021-02-19 13:15:50
+ * @LastEditTime: 2021-02-19 13:34:01
  * @LastEditors: yanbuw1911
  * @Description: 
  * @FilePath: /sverp/app/webApi/api/Test.php
@@ -78,20 +78,6 @@ class Test
 
     public function test()
     {
-        // $data = Db::table('star_cfo.prdmoedl')->where(['facno' => 'B0415F'])->select()->toArray();
-
-        // foreach ($data as $key => $value) {
-        //     var_dump($value);
-        // }
-        // $cnt = 0;
-        // foreach ($res as $v) {
-        //     $value = Db::table('hrdlib_material_used')->where('hmu_material_name', $v['hom_material_id'])->field(['id', 'hmu_material_name'])->find();
-        //     // dd($value);
-        //     $c = Db::table('hrdlib_outbound_material')->where('hom_material_id', $value['hmu_material_name'])->update(['hom_material_id' => $value['id']]);
-        //     $cnt += $c;
-        // }
-
-        // dd($cnt);
         // $dbh2 = new \PDO("mysql:host=127.0.0.1;dbname=starvc_homedb", 'root', 'root');
         // $res2 = $dbh->query("SHOW TABLES")->fetchAll(\PDO::FETCH_ASSOC);
         // dd($res2);
@@ -186,6 +172,19 @@ English / 正體中文 123 Chinese 测试 测试测
 
     public function transferMaterialStock()
     {
+        (function () {
+            $conn = mysqli_connect('192.168.123.51', 'root', 'root', 'star_cfo');
+            $sql = "select * from cfo_goods";
+            $res = mysqli_fetch_all(mysqli_query($conn, $sql), MYSQLI_ASSOC);
+
+            foreach ($res as $v) {
+                foreach (Db::table('hrdlib_material_used')->select()->toArray() as $value) {
+                    if ($v['goods_name'] === $value['hmu_material_name']) {
+                        Db::table('hrdlib_material_used')->where('id', $value['id'])->update(['hmu_material_stock' => $v['stock']]);
+                    }
+                }
+            }
+        })();
         // --------------  从老系统中获取用料库存操作数据 ------------------ //
         (function () {
             $conn = mysqli_connect('192.168.123.51', 'root', 'root', 'star_cfo');
