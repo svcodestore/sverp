@@ -2,7 +2,7 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-04 08:50:09
- * @LastEditTime: 2021-02-19 11:20:52
+ * @LastEditTime: 2021-02-19 11:32:56
  * @LastEditors: yanbuw1911
  * @Description: 
  * @FilePath: /sverp/app/webApi/api/Test.php
@@ -347,7 +347,7 @@ English / 正體中文 123 Chinese 测试 测试测
             }
         }
 
-        Db::table('hrdlib_outbound_material')->insertAll($rows)
+        Db::table('hrdlib_outbound_material')->insertAll($rows);
         // dd(Db::table('hrdlib_outbound_material')->insertAll($rows));
         // -------------- 从老系统中获取用料出料详细数据 ------------------ //
     }
