@@ -2,7 +2,7 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-04 08:50:09
- * @LastEditTime: 2021-02-19 13:07:39
+ * @LastEditTime: 2021-02-19 13:15:50
  * @LastEditors: yanbuw1911
  * @Description: 
  * @FilePath: /sverp/app/webApi/api/Test.php
@@ -192,9 +192,7 @@ English / 正體中文 123 Chinese 测试 测试测
             $sql = "select a.stock,a.create_time,a.type,a.author,b.goods_name from cfo_goods_stock as a,cfo_goods as b where a.goods_id = b.id";
             $res = mysqli_fetch_all(mysqli_query($conn, $sql), MYSQLI_ASSOC);
 
-            $dbh = new \PDO("mysql:host=127.0.0.1;dbname=starvc_homedb;port=3306", 'root', 'root');
-            $sql = "SELECT * FROM `hrdlib_material_used`";
-            $res2 = $dbh->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
+            $res2 = Db::table('hrdlib_material_used')->select()->toArray();
             $values = [];
             foreach ($res as $v) {
                 foreach ($res2 as $v2) {
@@ -320,9 +318,7 @@ English / 正體中文 123 Chinese 测试 测试测
             $sql = "select a.*, b.order_id,c.goods_name from star_cfo.cfo_goods_order_sub as a, cfo_goods_order as b, cfo_goods as c where a.goods_id = c.id and a.order_id = b.id";
             $res = mysqli_fetch_all(mysqli_query($conn, $sql), MYSQLI_ASSOC);
 
-            $dbh = new \PDO("mysql:host=127.0.0.1;dbname=starvc_homedb;port=3306", 'root', 'root');
-            $sql = "SELECT * FROM `hrdlib_material_used`";
-            $res2 = $dbh->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
+            $res2 = Db::table('hrdlib_material_used')->select()->toArray();
 
             $rows = array_map(function ($e) {
                 return [
@@ -341,8 +337,7 @@ English / 正體中文 123 Chinese 测试 测试测
                     }
                 }
             }
-            $sql = "SELECT * FROM `hrdlib_outbound_order`";
-            $res3 = $dbh->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
+            $res3 = Db::table('hrdlib_outbound_order')->select()->toArray();
             foreach ($rows as $k => $v) {
                 foreach ($res3 as $value) {
                     if ($value['hoo_order_id'] === $v['hom_outbound_id']) {
