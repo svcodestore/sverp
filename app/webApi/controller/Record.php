@@ -323,7 +323,7 @@ class Record
         'repair_phone' => $param['phone'],
         'repair_create_time' => time(),
         'repair_content' => $param['cause'],
-        'repair_meche' => $param['mecheName'],
+        'repair_name' => $param['mecheName'],
         'repair_department' => $param['noticeDepartment'],
         'repair_img' => $img ? $img : '',
       ];
@@ -391,11 +391,7 @@ class Record
         $data['thumbUrl'] = '';
         $data['url'] = 'http://' . $_SERVER['HTTP_HOST'] . '/static/' . $savename;
         cookie('imgUrl', 'http://' . $_SERVER['HTTP_HOST'] . '/static/' . $savename, 3600);
-
-        // $imgurl=$data['url'];
-        // echo '<script>';
-        // echo 'localStorage.setItem("imgUrl",'.$imgurl.')';
-        // echo '</script>';
+        $imgurl=$data['url'];
         return json($data);
       } catch (\think\exception\ValidateException $e) {
         echo $e->getMessage();
