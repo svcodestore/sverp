@@ -4,10 +4,10 @@ declare(strict_types=1);
 /*
 * @Author: yanbuw1911
 * @Date: 2021-01-07 14:15:16
- * @LastEditTime: 2021-01-21 13:10:14
+ * @LastEditTime: 2021-02-26 09:45:06
  * @LastEditors: yanbuw1911
 * @Description:
- * @FilePath: \backend\app\webApi\controller\Hrd.php
+ * @FilePath: /sverp/app/webApi/controller/Hrd.php
 */
 
 namespace app\webApi\controller;
@@ -59,11 +59,20 @@ class Hrd
         return json($rtn);
     }
 
-    public function getMaterialLogList()
+    public function getMaterialLogListById()
     {
         $materialId = input('post.materialId');
         $rtn['result'] = true;
-        $rtn['data'] = (new ModelHrd())->materialLogList($materialId);
+        $rtn['data'] = (new ModelHrd())->materialLogListById($materialId);
+
+        return json($rtn);
+    }
+
+    public function getMaterialLogListByUserid()
+    {
+        $userid = input('post.userid');
+        $rtn['result'] = true;
+        $rtn['data'] = (new ModelHrd())->materialLogListByUserid($userid);
 
         return json($rtn);
     }
@@ -88,6 +97,17 @@ class Hrd
     {
         $data = input();
         $rtn['result'] = (new ModelHrd())->outboundApprove($data);
+
+        return json($rtn);
+    }
+
+    public function materialLogSoftDel()
+    {
+        $id = input('post.id');
+        $materialId = input('post.materialId');
+        $oprtQty = input('post.oprtQty');
+        $usrid = input('post.usrid');
+        $rtn['result'] = (new ModelHrd())->materialLogSoftDel($id, $materialId, $oprtQty, $usrid);
 
         return json($rtn);
     }

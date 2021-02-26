@@ -4,10 +4,10 @@ declare(strict_types=1);
 /*
 * @Author: yanbuw1911
 * @Date: 2021-01-07 14:07:28
- * @LastEditTime: 2021-01-22 10:48:00
+ * @LastEditTime: 2021-02-26 09:49:51
  * @LastEditors: yanbuw1911
 * @Description:
- * @FilePath: \backend\app\webApi\model\Hrd.php
+ * @FilePath: /sverp/app/webApi/model/Hrd.php
 */
 
 namespace app\webApi\model;
@@ -49,14 +49,15 @@ class Hrd
                         LEFT JOIN (
                         SELECT
                             *,
-                            sum(
+                            SUM(
                             IF
                             ( hml_operate_type = 'put', hml_operate_qty, 0 )) AS in_stock,
-                            sum(
+                            SUM(
                             IF
                             ( hml_operate_type = 'out', hml_operate_qty, 0 )) AS out_stock 
                         FROM
                             hrdlib_material_log 
+                        WHERE hml_is_active = 1
                         GROUP BY
                             hml_material_id 
                         ) AS b ON a.id = b.hml_material_id 
@@ -110,7 +111,14 @@ class Hrd
     public function outboundMaterialList(string $outboundId): array
     {
         $t      = 'hrdlib_outbound_material';
-        $fields = ['a.*', 'm.hmu_material_name', 'm.hmu_material_code', 'm.hmu_material_model', 'm.hmu_material_unit'];
+        $fields = [
+            'a.*',
+            'm.hmu_material_name',
+            'm.hmu_material_code',
+            'm.hmu_material_model',
+            'm.hmu_material_unit',
+            'm.hmu_material_stock'
+        ];
         $res    = Db::table($t)
             ->where('hom_outbound_id', $outboundId)
             ->alias('a')
@@ -250,7 +258,7 @@ class Hrd
         return $flag;
     }
 
-    public function materialLogList(string $materialId): array
+    public function materialLogListById(string $materialId): array
     {
         $t   = 'hrdlib_material_log';
         $res = Db::table($t)
@@ -258,11 +266,53 @@ class Hrd
             ->alias('a')
             ->join('hrdlib_material_used b', 'a.hml_material_id=b.id')
             ->leftJoin('starvc_syslib.syslib_user_home c', 'a.hml_creator=c.con_id')
-            ->field(['a.*', 'b.*', 'c.con_name'])
+            ->field(['a.*', 'b.hmu_material_name', 'b.hmu_material_unit', 'c.con_name'])
+            ->where('a.hml_is_active', 1)
             ->order('a.hml_join_date', 'desc')
             ->select()
             ->toArray();
 
         return $res;
+    }
+
+    public function materialLogListByUserid(string $userid): array
+    {
+        $t   = 'hrdlib_material_log';
+        $res = Db::table($t)
+            ->alias('a')
+            ->join('hrdlib_material_used b', 'a.hml_material_id=b.id')
+            ->leftJoin('starvc_syslib.syslib_user_home c', 'a.hml_creator=c.con_id')
+            ->field(['a.*', 'b.hmu_material_name', 'b.hmu_material_unit', 'c.con_name'])
+            ->where(['a.hml_creator' => $userid, 'a.hml_is_active' => 1])
+            ->whereRaw("(a.hml_operate_type='put' OR a.hml_operate_type='set')")
+            ->limit(6)
+            ->order('a.hml_join_date', 'desc')
+            ->select()
+            ->toArray();
+
+        return $res;
+    }
+
+    public function materialLogSoftDel(string $id, string $materialId, string $oprtQty, string $usrid): bool
+    {
+        Db::startTrans();
+        $sql = "UPDATE hrdlib_material_log SET hml_is_active = 0 WHERE id = ?";
+        $res = Db::execute($sql, [$id]);
+        if (false !== $res) {
+            $sql = "UPDATE hrdlib_material_used 
+                    SET hmu_material_stock = hmu_material_stock - ?,
+                    hmu_material_modifier = ?
+                    WHERE
+                    id = ?";
+
+            $res = Db::execute($sql, [$oprtQty, $usrid, $materialId]);
+            if (false !== $res) {
+                Db::commit();
+                return true;
+            }
+        }
+
+        Db::rollback();
+        return false;
     }
 }

@@ -4,10 +4,10 @@ declare(strict_types=1);
 /*
 * @Author: yanbuw1911
 * @Date: 2021-01-07 14:18:07
- * @LastEditTime: 2021-01-21 13:10:29
+ * @LastEditTime: 2021-02-26 09:22:30
  * @LastEditors: yanbuw1911
 * @Description:
- * @FilePath: \backend\app\webApi\api\Hrd.php
+ * @FilePath: /sverp/app/webApi/api/Hrd.php
 */
 
 namespace app\webApi\api;
@@ -42,9 +42,14 @@ class Hrd extends BaseController
         return (new ControllerHrd())->getOutboundMaterialList();
     }
 
-    public function getMaterialLogList()
+    public function getMaterialLogListById()
     {
-        return (new ControllerHrd())->getMaterialLogList();
+        return (new ControllerHrd())->getMaterialLogListById();
+    }
+
+    public function getMaterialLogListByUserid()
+    {
+        return (new ControllerHrd())->getMaterialLogListByUserid();
     }
 
     public function setMaterialStock()
@@ -60,5 +65,10 @@ class Hrd extends BaseController
     public function approveOutbound()
     {
         return (new ControllerHrd())->approveOutbound();
+    }
+
+    public function materialLogSoftDel()
+    {
+        return (new ControllerHrd())->materialLogSoftDel();
     }
 }
