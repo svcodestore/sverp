@@ -2,7 +2,7 @@
 /*
 * @Author: yanbuw1911
 * @Date: 2020-12-29 10:47:11
- * @LastEditTime: 2021-02-05 08:47:49
+ * @LastEditTime: 2021-02-27 10:30:36
  * @LastEditors: yanbuw1911
 * @Description:
  * @FilePath: /sverp/app/webApi/controller/Mis.php
@@ -38,10 +38,32 @@ class Mis
 
     public function sysUpdate()
     {
-        $cmd = '@echo off 
-        D: 
-        cd vhost/www.sverp.com && "C:\Program Files\Git\bin\git.exe" pull origin main && cd ../webapp && "C:\Program Files\Git\bin\git.exe" pull origin main && npm install && npm run build && npm run docs:build:man && npm run docs:build:dev';
-        $res = exec($cmd);
+        $cmd = 'update-pack.bat';
+        exec($cmd, $res);
+
+        return $res;
+    }
+
+    public function startNodeWeb()
+    {
+        $cmd = 'start-node-spare.bat';
+        exec($cmd, $res);
+
+        return $res;
+    }
+
+    public function stopNodeWeb()
+    {
+        $cmd = 'stop-node-spare.bat';
+        exec($cmd, $res);
+
+        return $res;
+    }
+
+    public function restartNodeWeb()
+    {
+        $cmd = 'restart-node-spare.bat';
+        exec($cmd, $res);
 
         return $res;
     }
