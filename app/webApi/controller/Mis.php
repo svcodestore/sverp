@@ -2,7 +2,7 @@
 /*
 * @Author: yanbuw1911
 * @Date: 2020-12-29 10:47:11
- * @LastEditTime: 2021-02-27 10:30:36
+ * @LastEditTime: 2021-02-27 11:05:21
  * @LastEditors: yanbuw1911
 * @Description:
  * @FilePath: /sverp/app/webApi/controller/Mis.php
@@ -41,7 +41,7 @@ class Mis
         $cmd = 'update-pack.bat';
         exec($cmd, $res);
 
-        return $res;
+        return $res[0];
     }
 
     public function startNodeWeb()
@@ -49,7 +49,7 @@ class Mis
         $cmd = 'start-node-spare.bat';
         exec($cmd, $res);
 
-        return $res;
+        return $res[0];
     }
 
     public function stopNodeWeb()
@@ -57,7 +57,7 @@ class Mis
         $cmd = 'stop-node-spare.bat';
         exec($cmd, $res);
 
-        return $res;
+        return $res[0];
     }
 
     public function restartNodeWeb()
@@ -65,6 +65,6 @@ class Mis
         $cmd = 'restart-node-spare.bat';
         exec($cmd, $res);
 
-        return $res;
+        return $res[0];
     }
 }
