@@ -2,7 +2,7 @@
 /*
 * @Author: yanbuw1911
 * @Date: 2020-12-29 10:59:57
- * @LastEditTime: 2021-02-27 10:31:20
+ * @LastEditTime: 2021-02-27 11:11:14
  * @LastEditors: yanbuw1911
 * @Description:
  * @FilePath: /sverp/app/webApi/api/Mis.php
@@ -18,11 +18,6 @@ class Mis
     public function downloadClient()
     {
         return (new ControllerMis())->downloadClient();
-    }
-
-    public function sysUpdate()
-    {
-        return (new ControllerMis())->sysUpdate();
     }
 
     public function startNodeWeb()

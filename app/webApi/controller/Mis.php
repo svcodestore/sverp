@@ -2,7 +2,7 @@
 /*
 * @Author: yanbuw1911
 * @Date: 2020-12-29 10:47:11
- * @LastEditTime: 2021-02-27 11:05:21
+ * @LastEditTime: 2021-02-27 11:11:03
  * @LastEditors: yanbuw1911
 * @Description:
  * @FilePath: /sverp/app/webApi/controller/Mis.php
@@ -34,14 +34,6 @@ class Mis
             fclose($handle); //关闭文件句柄
             exit;
         }
-    }
-
-    public function sysUpdate()
-    {
-        $cmd = 'update-pack.bat';
-        exec($cmd, $res);
-
-        return $res[0];
     }
 
     public function startNodeWeb()
