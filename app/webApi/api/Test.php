@@ -71,8 +71,9 @@ class Test
 
     public function setAutoSchedulePdo()
     {
+        $input = input();
         $prodObj = new \app\webApi\model\Prod();
-        $res = $prodObj->syncProdSchdParam('V', 2021, 01);
+        $res = $prodObj->syncProdSchdParam($input['prodLine'], $input['year'], $input['month']);
         dd($res);
     }
 
