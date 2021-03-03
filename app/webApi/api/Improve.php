@@ -2,10 +2,10 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-05 13:32:40
- * @LastEditTime: 2021-01-15 13:42:41
+ * @LastEditTime: 2021-03-03 09:19:59
  * @LastEditors: yanbuw1911
  * @Description: 
- * @FilePath: \backend\app\webApi\api\Improve.php
+ * @FilePath: /sverp/app/webApi/api/Improve.php
  */
 
 namespace app\webApi\api;
@@ -45,14 +45,14 @@ class Improve extends BaseController
         return (new ControllerImprove())->getUserFavoritePages();
     }
 
-    public function setUserFavirotePage()
+    public function setUserFavoritePage()
     {
-        return (new ControllerImprove())->setUserFavirotePage();
+        return (new ControllerImprove())->setUserFavoritePage();
     }
 
-    public function rmUserFavirotePage()
+    public function rmUserFavoritePage()
     {
-        return (new ControllerImprove())->rmUserFavirotePage();
+        return (new ControllerImprove())->rmUserFavoritePage();
     }
 
     public function auditRequire()

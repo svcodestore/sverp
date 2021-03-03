@@ -4,7 +4,7 @@ declare(strict_types=1);
 /*
 * @Author: yanbuw1911
 * @Date: 2021-01-07 14:07:28
- * @LastEditTime: 2021-02-26 09:49:51
+ * @LastEditTime: 2021-03-03 13:16:35
  * @LastEditors: yanbuw1911
 * @Description:
  * @FilePath: /sverp/app/webApi/model/Hrd.php
@@ -105,6 +105,49 @@ class Hrd
             ->select()
             ->toArray();
 
+        return $res;
+    }
+
+    public function individualOutboundOrder(string $usrid): array
+    {
+        $t   = 'hrdlib_outbound_order';
+        $res = Db::table($t)
+            ->alias('a')
+            ->leftJoin('starvc_syslib.syslib_user_home c', 'a.hoo_creator=c.con_id')
+            ->field(
+                [
+                    'a.id',
+                    'a.hoo_order_id',
+                    'a.hoo_join_date'
+                ]
+            )
+            ->where(['a.hoo_is_approved' => 0])
+            ->where('c.con_name', $usrid)
+            ->whereOr('c.con_id', $usrid)
+            ->order(
+                [
+                    'a.hoo_is_approved',
+                    'a.hoo_join_date' => 'desc'
+                ]
+            )
+            ->select()
+            ->toArray();
+
+        return $res;
+    }
+
+    public function undoOutbound(string $outboundId): bool
+    {
+        Db::startTrans();
+        $res = false !== Db::table('hrdlib_outbound_material')->where('hom_outbound_id', $outboundId)->delete();
+        if ($res) {
+            $res = false !== Db::table('hrdlib_outbound_order')->where('id', $outboundId)->delete();
+            if ($res) {
+                Db::commit();
+                return $res;
+            }
+        }
+        Db::rollback();
         return $res;
     }
 

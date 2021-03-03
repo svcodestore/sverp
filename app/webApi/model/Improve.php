@@ -14,7 +14,7 @@ use think\facade\Db;
 
 class Improve
 {
-    public function userFavirotePages(string $usrid): array
+    public function userFavoritePages(string $usrid): array
     {
         $db = 'starvc_imprvlib';
         $t = $db . '.imprvlib_fav_page';
@@ -25,7 +25,7 @@ class Improve
         return $res;
     }
 
-    public function setUserFavirotePage(string $menuid, string $usrid): bool
+    public function setUserFavoritePage(string $menuid, string $usrid): bool
     {
         $db = 'starvc_imprvlib';
         $t = $db . '.imprvlib_fav_page';
@@ -39,7 +39,7 @@ class Improve
         return 0 !== $res;
     }
 
-    public function rmUserFavirotePage(string $menuid, string $usrid): bool
+    public function rmUserFavoritePage(string $menuid, string $usrid): bool
     {
         $db = 'starvc_imprvlib';
         $t = $db . '.imprvlib_fav_page';

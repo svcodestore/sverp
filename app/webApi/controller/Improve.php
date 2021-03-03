@@ -2,10 +2,10 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-05 13:28:20
- * @LastEditTime: 2021-01-15 13:48:30
+ * @LastEditTime: 2021-03-03 09:19:52
  * @LastEditors: yanbuw1911
  * @Description: 
- * @FilePath: \backend\app\webApi\controller\Improve.php
+ * @FilePath: /sverp/app/webApi/controller/Improve.php
  */
 
 namespace app\webApi\controller;
@@ -51,25 +51,25 @@ class Improve
         $id = input('post.id');
 
         $rtn['result'] = true;
-        $rtn['data'] = (new ModelImprove())->userFavirotePages($id);
+        $rtn['data'] = (new ModelImprove())->userFavoritePages($id);
 
         return json($rtn);
     }
 
-    public function setUserFavirotePage()
+    public function setUserFavoritePage()
     {
         $param = input();
 
-        $rtn['result'] = (new ModelImprove())->setUserFavirotePage($param['menuid'], $param['usrid']);
+        $rtn['result'] = (new ModelImprove())->setUserFavoritePage($param['menuid'], $param['usrid']);
 
         return json($rtn);
     }
 
-    public function rmUserFavirotePage()
+    public function rmUserFavoritePage()
     {
         $param = input();
 
-        $rtn['result'] = (new ModelImprove())->rmUserFavirotePage($param['menuid'], $param['usrid']);
+        $rtn['result'] = (new ModelImprove())->rmUserFavoritePage($param['menuid'], $param['usrid']);
 
         return json($rtn);
     }

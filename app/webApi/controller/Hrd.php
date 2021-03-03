@@ -4,7 +4,7 @@ declare(strict_types=1);
 /*
 * @Author: yanbuw1911
 * @Date: 2021-01-07 14:15:16
- * @LastEditTime: 2021-02-26 09:45:06
+ * @LastEditTime: 2021-03-03 13:49:25
  * @LastEditors: yanbuw1911
 * @Description:
  * @FilePath: /sverp/app/webApi/controller/Hrd.php
@@ -46,6 +46,23 @@ class Hrd
     {
         $rtn['result'] = true;
         $rtn['data'] = (new ModelHrd())->outboundOrder();
+
+        return json($rtn);
+    }
+
+    public function getIndividualOutboundOrder()
+    {
+        $usrid = input('post.usrid');
+        $rtn['result'] = true;
+        $rtn['data'] = (new ModelHrd())->individualOutboundOrder($usrid);
+
+        return json($rtn);
+    }
+
+    public function undoOutbound()
+    {
+        $outboundId = input('post.outboundId');
+        $rtn['result'] = (new ModelHrd())->undoOutbound($outboundId);
 
         return json($rtn);
     }

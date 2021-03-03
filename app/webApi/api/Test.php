@@ -77,6 +77,28 @@ class Test
         dd($res);
     }
 
+    public function sync()
+    {
+
+        $dbh = new \PDO("mysql:host=127.0.0.1;dbname=starvc_homedb", 'root', 'root');
+
+        $sql = "SELECT  PPI_IS_DIRTY,
+                        PPI_PO_SORT,
+                        PPI_PO_YEAR,
+                        PPI_PO_MONTH,
+                        PPI_EXPECTED_QTY,
+                        PPI_PRD_ITEM,
+                        PPI_CUSTOMER_PONO,
+                        PPI_CUSTOMER_NO,
+                        PPI_WORKSHOP_NAME,
+                        PPI_WORKSHOP 
+                    FROM PRODLIB_PRDSCHD_INITPO 
+                WHERE PPI_PO_YEAR = 2021 
+                    AND PPI_PO_MONTH = 03";
+        $res2 = $dbh->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
+        dd(Db::table('prodlib_prdschd_initpo')->insertAll($res2));
+    }
+
     public function test()
     {
         // $dbh2 = new \PDO("mysql:host=127.0.0.1;dbname=starvc_homedb", 'root', 'root');

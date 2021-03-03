@@ -4,7 +4,7 @@ declare(strict_types=1);
 /*
 * @Author: yanbuw1911
 * @Date: 2021-01-07 14:18:07
- * @LastEditTime: 2021-02-26 09:22:30
+ * @LastEditTime: 2021-03-03 13:23:55
  * @LastEditors: yanbuw1911
 * @Description:
  * @FilePath: /sverp/app/webApi/api/Hrd.php
@@ -35,6 +35,16 @@ class Hrd extends BaseController
     public function getOutboundOrder()
     {
         return (new ControllerHrd())->getOutboundOrder();
+    }
+
+    public function getIndividualOutboundOrder()
+    {
+        return (new ControllerHrd())->getIndividualOutboundOrder();
+    }
+
+    public function undoOutbound()
+    {
+        return (new ControllerHrd())->undoOutbound();
     }
 
     public function getOutboundMaterialList()
