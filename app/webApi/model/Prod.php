@@ -2,10 +2,10 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-18 14:56:05
- * @LastEditTime: 2020-12-25 16:35:46
+ * @LastEditTime: 2021-03-05 16:00:25
  * @LastEditors: yanbuw1911
  * @Description: 生管部模型
- * @FilePath: \backend\app\webApi\model\Prod.php
+ * @FilePath: /sverp/app/webApi/model/Prod.php
  */
 
 namespace app\webApi\model;
@@ -142,6 +142,18 @@ class Prod
         return true;
     }
 
+
+    public function prodItemSubphases(string $prdItem, string $phsid): array
+    {
+        $table = 'prodlibmap_prdschd_initpdo2phs';
+        $cond  = [
+            'map_ppi_phsid'    => $phsid,
+            'map_ppi_prd_item' => $prdItem
+        ];
+
+        return Db::table($table)->where($cond)->select()->toArray();
+    }
+
     /**
      * 生产单列表
      * @param  string $prodLine 生产线
@@ -170,20 +182,18 @@ class Prod
                             potbl.ppi_is_dirty,
                             phstbl.map_ppi_phsid,
                             phstbl.map_ppi_phs,
-                            sum( phstbl.map_ppi_cost_time ) map_ppi_cost_time,
+                            SUM( phstbl.map_ppi_cost_time ) map_ppi_cost_time,
                             phstbl.map_ppi_seq,
                             phstbl.map_ppi_phs_desc,
-                            phstbl.map_ppi_aheadtime,
-                            phstbl.map_ppi_deadtime,
-                            phstbl.map_ppi_outime,
-                            phstbl.map_ppi_ismaster,
+                            SUM( phstbl.map_ppi_aheadtime ) map_ppi_aheadtime,
+                            SUM( phstbl.map_ppi_deadtime ) map_ppi_deadtime,
+                            SUM( phstbl.map_ppi_outime ) map_ppi_outime,
+                            SUM( IF( phstbl.map_ppi_ismaster = 1, 0, 1 ) ) map_ppi_isvice,
                             phstbl.map_ppi_isdirty 
                         FROM
                             $prodPhasesTbl AS phstbl,
                             $prodOrderTbl AS potbl 
-                        WHERE
-                            phstbl.map_ppi_cost_time > 0 
-                            AND potbl.ppi_workshop = ? 
+                        WHERE potbl.ppi_workshop = ? 
                             AND potbl.ppi_po_year = ? 
                             AND potbl.ppi_po_month = ? 
                             -- AND potbl.ppi_prd_item = 'B60530' 
@@ -195,7 +205,6 @@ class Prod
                             phstbl.map_ppi_phs,
                             potbl.id 
                         ORDER BY
-                            potbl.ppi_po_sort,
                             potbl.id,
                             phstbl.map_ppi_phsid";
         // 生产单列表，包含一款款号多个工序的糅余记录
@@ -241,13 +250,13 @@ class Prod
                             potbl.ppi_is_dirty,
                             phstbl.map_ppi_phsid,
                             phstbl.map_ppi_phs,
-                            sum( phstbl.map_ppi_cost_time ) map_ppi_cost_time,
+                            SUM( phstbl.map_ppi_cost_time ) map_ppi_cost_time,
                             phstbl.map_ppi_seq,
                             phstbl.map_ppi_phs_desc,
-                            phstbl.map_ppi_aheadtime,
-                            phstbl.map_ppi_deadtime,
-                            phstbl.map_ppi_outime,
-                            phstbl.map_ppi_ismaster,
+                            SUM( phstbl.map_ppi_aheadtime ) map_ppi_aheadtime,
+                            SUM( phstbl.map_ppi_deadtime ) map_ppi_deadtime,
+                            SUM( phstbl.map_ppi_outime ) map_ppi_outime,
+                            SUM( IF( phstbl.map_ppi_ismaster = 1, 0, 1 ) ) map_ppi_isvice,
                             phstbl.map_ppi_isdirty 
                         FROM
                             $prodPhasesTbl AS phstbl,

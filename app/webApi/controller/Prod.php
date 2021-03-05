@@ -2,10 +2,10 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-18 15:00:44
- * @LastEditTime: 2020-12-31 15:03:18
+ * @LastEditTime: 2021-03-05 17:01:33
  * @LastEditors: yanbuw1911
  * @Description: 
- * @FilePath: \backend\app\webApi\controller\Prod.php
+ * @FilePath: /sverp/app/webApi/controller/Prod.php
  */
 
 namespace app\webApi\controller;
@@ -69,6 +69,17 @@ class Prod
 
         $res                = (new ModelProd())->syncProdSchdParam($prodLine, $year, $month);
         $rtn['result']      = $res;
+
+        return json($rtn);
+    }
+
+    public function getProdItemSubphases()
+    {
+        $prdItem = input('post.prdItem');
+        $phsid = input('post.phsid');
+
+        $rtn['result'] = true;
+        $rtn['data'] = (new ModelProd())->prodItemSubphases($prdItem, $phsid);
 
         return json($rtn);
     }
@@ -341,7 +352,6 @@ class Prod
             }
         }
         $startSchDate    = $firstWorkdayOfMonth;
-
         // 排程开始日期
         // $schStartAt     = strtotime("2020-11-04 15:32:12");
         $schStartAt     = strtotime("$startSchDate $morningWorktimeStart");
@@ -374,7 +384,6 @@ class Prod
             return max($e['cost']);
         }, $phsCost);
         // ===========================================================================
-
         // 工序排程开始时间
         $phaseStartAt   = $schStartAt;
         // 重新组织生产单信息，将每一款款号的工序存于生产单的 phases 键中
@@ -457,7 +466,7 @@ class Prod
                         // 生产单的第二道工序
                     } else if (count($prodOrdersInfo[$k]['phases']) === 1) {
                         // 主辅流程处理
-                        if ($orderItem['map_ppi_ismaster'] == 1) {
+                        if ($orderItem['map_ppi_isvice'] === '0') {
                             $phaseStartAt = strtotime(current($prodOrdersInfo[$k]['phases'])['ppi_phs_start']) + $singlePhaseNeed;
                         } else {
                             // 辅流程，使开始时间为上一生产单第一工序等分生产量的完成时间
@@ -469,14 +478,22 @@ class Prod
                         // 生产单的之后的工序
                     } else if (next($prodOrdersInfo[$k]['phases'])) {
                         // 主辅流程处理
-                        if ($orderItem['map_ppi_ismaster'] == 1) {
+                        if ($orderItem['map_ppi_isvice'] === '0') {
                             $phaseStartAt = strtotime(current($prodOrdersInfo[$k]['phases'])['ppi_phs_start']) + $singlePhaseNeed;
                         } else {
                             // 辅流程，使开始时间为上一生产单第一工序等分生产量的完成时间
-                            $prevPrdOrderPhs = $prodOrdersInfo[$k - 1]['phases'];
-                            $phaseStartAt    = strtotime($prevPrdOrderPhs[0]['ppi_phs_complete']);
+                            if ($k > 0) {
+                                $prevPrdOrderPhs = $prodOrdersInfo[$k - 1]['phases'];
+                                $phaseStartAt    = strtotime($prevPrdOrderPhs[0]['ppi_phs_complete']);
+                            } else {
+                                $phaseStartAt    = $schStartAt;
+                            }
                             $isFirstPhase    = true;
                         }
+                    }
+
+                    if ($orderItem['ppi_customer_no'] == 'JSTW' && $orderItem['ppi_customer_pono'] == '85926' && $orderItem['ppi_prd_item'] == 'B32180' && $orderItem['map_ppi_phsid'] === '023') {
+                        dd($orderItem);
                     }
 
                     // 如果有停滞时间则算入排程时间
@@ -535,7 +552,7 @@ class Prod
                         }
                     }
 
-                    $prodOrdersInfo[$k]['phases'][] = [
+                    $append = [
                         'map_ppi_phsid'     => $orderItem['map_ppi_phsid'],
                         'map_ppi_phs'       => $orderItem['map_ppi_phs'] ?: $orderItem['map_ppi_phs_desc'],
                         'map_ppi_seq'       => $orderItem['map_ppi_seq'],
@@ -544,11 +561,17 @@ class Prod
                         'map_ppi_aheadtime' => $orderItem['map_ppi_aheadtime'],
                         'map_ppi_deadtime'  => $orderItem['map_ppi_deadtime'],
                         'map_ppi_outime'    => $orderItem['map_ppi_outime'],
-                        'map_ppi_ismaster'  => $orderItem['map_ppi_ismaster'],
+                        'map_ppi_isvice'  => $orderItem['map_ppi_isvice'],
                         'map_ppi_isdirty'   => $orderItem['map_ppi_isdirty'],
                         'ppi_phs_start'     => date(self::WORK_DATETIME_FORMAT, $phaseActualStartAt),
                         'ppi_phs_complete'  => date(self::WORK_DATETIME_FORMAT, $phaseActualCompleteAt)
                     ];
+
+                    if ($orderItem['map_ppi_isvice'] === '0') {
+                        $prodOrdersInfo[$k]['phases'][] = $append;
+                    } else {
+                        array_unshift($prodOrdersInfo[$k]['phases'], $append);
+                    }
                 }
             }
         }
@@ -907,7 +930,7 @@ class Prod
                         // 生产单的第二道工序
                     } else if (count($prodOrdersInfo[$k]['phases']) === 1) {
                         // 主辅流程处理
-                        if ($orderItem['map_ppi_ismaster'] == 1) {
+                        if ($orderItem['map_ppi_isvice'] === '0') {
                             $phaseStartAt = strtotime(current($prodOrdersInfo[$k]['phases'])['ppi_phs_start']) + $singlePhaseNeed;
                         } else {
                             // 辅流程，使开始时间为上一生产单第一工序等分生产量的完成时间
@@ -919,7 +942,7 @@ class Prod
                         // 生产单的之后的工序
                     } else if (next($prodOrdersInfo[$k]['phases'])) {
                         // 主辅流程处理
-                        if ($orderItem['map_ppi_ismaster'] == 1) {
+                        if ($orderItem['map_ppi_isvice'] === '0') {
                             $phaseStartAt = strtotime(current($prodOrdersInfo[$k]['phases'])['ppi_phs_start']) + $singlePhaseNeed;
                         } else {
                             // 辅流程，使开始时间为上一生产单第一工序等分生产量的完成时间
@@ -994,7 +1017,7 @@ class Prod
                         'map_ppi_aheadtime' => $orderItem['map_ppi_aheadtime'],
                         'map_ppi_deadtime'  => $orderItem['map_ppi_deadtime'],
                         'map_ppi_outime'    => $orderItem['map_ppi_outime'],
-                        'map_ppi_ismaster'  => $orderItem['map_ppi_ismaster'],
+                        'map_ppi_isvice'  => $orderItem['map_ppi_isvice'],
                         'map_ppi_isdirty'   => $orderItem['map_ppi_isdirty'],
                         'ppi_phs_start'     => date(self::WORK_DATETIME_FORMAT, $phaseActualStartAt),
                         'ppi_phs_complete'  => date(self::WORK_DATETIME_FORMAT, $phaseActualCompleteAt)

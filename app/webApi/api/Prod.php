@@ -2,10 +2,10 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-18 15:07:48
- * @LastEditTime: 2020-12-24 16:43:54
+ * @LastEditTime: 2021-03-05 14:54:25
  * @LastEditors: yanbuw1911
  * @Description: 
- * @FilePath: \backend\app\webApi\api\Prod.php
+ * @FilePath: /sverp/app/webApi/api/Prod.php
  */
 
 namespace app\webApi\api;
@@ -53,6 +53,11 @@ class Prod extends BaseController
     public function setWorktime()
     {
         return (new ControllerProd())->setWorktime();
+    }
+
+    public function getProdItemSubphases()
+    {
+        return (new ControllerProd())->getProdItemSubphases();
     }
 
     public function getAutoSchdParam()
