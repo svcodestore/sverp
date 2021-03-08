@@ -2,7 +2,7 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-18 15:00:44
- * @LastEditTime: 2021-03-05 17:01:33
+ * @LastEditTime: 2021-03-08 08:58:23
  * @LastEditors: yanbuw1911
  * @Description: 
  * @FilePath: /sverp/app/webApi/controller/Prod.php
@@ -430,22 +430,26 @@ class Prod
                 if ($v['prdoid'] == $orderItem['id']) {
                     #由于数据有问题，取 ppi_po_qty，ppi_expected_qty 中的其中一个值，以 ppi_po_qty 优先
                     $prdTotal        = $prodOrdersInfo[$k]['ppi_po_qty'] ?: $prodOrdersInfo[$k]['ppi_expected_qty'];
+                    $costTime        = 0;
 
                     switch ($schdMode) {
                         case 'SELF_COST':
                             // 采用自身耗时
-                            $singlePhaseNeed = $splitCount * $orderItem['map_ppi_cost_time'];
-                            $allPhaseNeed    = $prdTotal * $orderItem['map_ppi_cost_time'];
+                            $costTime        = $orderItem['map_ppi_cost_time'] > 0 ? $orderItem['map_ppi_cost_time'] : 0;
+                            $singlePhaseNeed = $splitCount * $costTime;
+                            $allPhaseNeed    = $prdTotal * $costTime;
                             break;
                         case 'MAX_COST':
                             // 工序耗时为整张生产单中最大工序耗时
-                            $singlePhaseNeed = $splitCount * $phsCost[$k];
-                            $allPhaseNeed    = $prdTotal * $phsCost[$k];
+                            $costTime        = $orderItem['map_ppi_cost_time'] > 0 ? $phsCost[$k] : 0;
+                            $singlePhaseNeed = $splitCount * $costTime;
+                            $allPhaseNeed    = $prdTotal * $costTime;
                             break;
                         default:
                             // 工序耗时为整张生产单中最大工序耗时
-                            $singlePhaseNeed = $splitCount * $phsCost[$k];
-                            $allPhaseNeed    = $prdTotal * $phsCost[$k];
+                            $costTime        = $orderItem['map_ppi_cost_time'] > 0 ? $phsCost[$k] : 0;
+                            $singlePhaseNeed = $splitCount * $costTime;
+                            $allPhaseNeed    = $prdTotal * $costTime;
                     }
                     // 测试
                     // $singlePhaseNeed = $splitCount * 123;
@@ -492,9 +496,9 @@ class Prod
                         }
                     }
 
-                    if ($orderItem['ppi_customer_no'] == 'JSTW' && $orderItem['ppi_customer_pono'] == '85926' && $orderItem['ppi_prd_item'] == 'B32180' && $orderItem['map_ppi_phsid'] === '023') {
-                        dd($orderItem);
-                    }
+                    // if ($orderItem['ppi_customer_no'] == 'JSTW' && $orderItem['ppi_customer_pono'] == '85926' && $orderItem['ppi_prd_item'] == 'B32180' && $orderItem['map_ppi_phsid'] === '023') {
+                    //     dd($orderItem);
+                    // }
 
                     // 如果有停滞时间则算入排程时间
                     if ($orderItem['map_ppi_deadtime'] > 0) {
@@ -502,6 +506,7 @@ class Prod
                     }
 
                     // 处理工序开始时间。加入工作日上下班休息时间
+                    // printf("%s\n", date(self::WORK_DATETIME_FORMAT, $phaseStartAt));
                     $phaseActualStartAt
                         = $this->handlePhaseStartTime(
                             $phaseStartAt,
@@ -509,6 +514,7 @@ class Prod
                             $isFirstPhase,
                             $arrangeDays
                         );
+                    // printf("%s\n-------------\n", date(self::WORK_DATETIME_FORMAT, $phaseActualStartAt));
                     // 加入休息日，排到休息日则向后算入一天
                     foreach ($arrangeDays as $v) {
                         if (
@@ -561,7 +567,7 @@ class Prod
                         'map_ppi_aheadtime' => $orderItem['map_ppi_aheadtime'],
                         'map_ppi_deadtime'  => $orderItem['map_ppi_deadtime'],
                         'map_ppi_outime'    => $orderItem['map_ppi_outime'],
-                        'map_ppi_isvice'  => $orderItem['map_ppi_isvice'],
+                        'map_ppi_isvice'    => $orderItem['map_ppi_isvice'],
                         'map_ppi_isdirty'   => $orderItem['map_ppi_isdirty'],
                         'ppi_phs_start'     => date(self::WORK_DATETIME_FORMAT, $phaseActualStartAt),
                         'ppi_phs_complete'  => date(self::WORK_DATETIME_FORMAT, $phaseActualCompleteAt)
