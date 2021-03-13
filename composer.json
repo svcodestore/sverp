@@ -26,10 +26,10 @@
         "firebase/php-jwt": "^5.2",
         "topthink/think-multi-app": "^1.0",
         "workerman/workerman": "^4.0",
-        "dompdf/dompdf": "^0.8.6",
         "workerman/gatewayclient": "^3.0",
         "workerman/gateway-worker": "^3.0",
-        "alibabacloud/client": "^1.5"
+        "alibabacloud/client": "^1.5",
+        "dompdf/dompdf": "^1.0"
     },
     "require-dev": {
         "symfony/var-dumper": "^4.2",

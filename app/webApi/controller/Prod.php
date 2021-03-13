@@ -2,7 +2,7 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-18 15:00:44
- * @LastEditTime: 2021-03-08 08:58:23
+ * @LastEditTime: 2021-03-13 09:17:27
  * @LastEditors: yanbuw1911
  * @Description: 
  * @FilePath: /sverp/app/webApi/controller/Prod.php
@@ -656,41 +656,39 @@ class Prod
                 body {
                     font-family: simkai;
                 }
+
+                .phs {
+                    text-align: center;
+                    border: 1px solid black;
+                }
             </style>
         </head>
-        <body>';
+        <body>
+        <center><h1>' . $date . '生产排程报表</h1></center>';
 
-        foreach ($data as $k => $v) {
-            $html .= '<div style="margin: 20px 0 65px 0;">
-                    <div style="text-align: center; font-size: 26px;">
-                    ' . $date . $v['ppi_workshop_name'] . '「' . $v['ppi_customer_pono'] . ' - ' . $v['ppi_prd_item'] . '」生产排程
-                    </div>
-                    
-                    <table cellspacing="0" cellpadding="0" width="100%">
-                        <tr>
-                            <td>客户代号：' . $v['ppi_customer_no'] . '</td>
-                            <td>客户订单号：' . $v['ppi_customer_pono'] . '</td>
-                        </tr>
-                        <tr>
-                            <td>工厂品号：' . $v['ppi_prd_item'] . '</td>
-                            <td>订单数量：' . ($v['ppi_po_qty'] ?: $v['ppi_expected_qty']) . '</td>
-                        </tr>
-                    </table>
-                    <table border="1" cellspacing="0" cellpadding="0" width="100%">
+        foreach ($data as $v) {
+            $html .= '<table cellspacing="0" cellpadding="0" width="50%">
+            <tr>
+                <td>客户代号：' . $v['ppi_customer_no'] . '</td>
+                <td>客户订单号：' . $v['ppi_customer_pono'] . '</td>
+                <td>工厂品号：' . $v['ppi_prd_item'] . '</td>
+                <td>订单数量：' . ($v['ppi_po_qty'] ?: $v['ppi_expected_qty']) . '</td>
+            </tr>
+        </table>';
+            $html .= '<table cellspacing="0" cellpadding="0" width="100%" style="margin-bottom: 6px;">
                         <tr>';
             $row1 = '';
             $row2 = '';
             $row3 = '';
             foreach ($v['phases'] as $phs) {
-                $row1 .= '<td style="text-align: center;">' . $phs['map_ppi_phs'] . '</td>';
-                $row2 .= '<td style="text-align: center;">' . $phs['ppi_phs_start'] . '</td>';
-                $row3 .= '<td style="text-align: center;">' . $phs['ppi_phs_complete'] . '</td>';
+                $row1 .= '<td class="phs">' . $phs['map_ppi_phs'] . ($phs['map_ppi_isvice'] === '1' ? '·副' : '') . '</td>';
+                $row2 .= '<td class="phs">' . $phs['ppi_phs_start'] . '</td>';
+                $row3 .= '<td class="phs">' . $phs['ppi_phs_complete'] . '</td>';
             }
             $html .= $row1 . '</tr><tr>' . $row2 . '</tr><tr>' . $row3;
             $html .= '
                         </tr>
-                    </table>
-                </div>';
+                    </table>';
         }
 
         $html .= '</body></html>';
@@ -698,7 +696,7 @@ class Prod
         $options = new Options();
         $options->set('enable_remote', true);
         $dompdf = new Dompdf($options);
-        $dompdf->setPaper('A4', 'landscape');
+        $dompdf->setPaper('A3', 'landscape');
         $dompdf->loadHtml($html, 'UTF-8');
         $dompdf->render();
         $dompdf->stream("sample.pdf", ["Attachment" => 0]);
@@ -736,304 +734,6 @@ class Prod
 
         $res = (new ModelProd())->setWorktime($timestr);
         $rtn['result'] = $res;
-
-        return json($rtn);
-    }
-
-    public function inspectSchedule()
-    {
-        $param          = input();
-        $year           = $param['year'];
-        $month          = $param['month'];
-        $prodLine       = $param['prodLine'];
-        $prodList       = $param['prodList'];
-        $phase          = $param['phase'] ?? '';
-        $costTime       = $param['costTime'] ?? null;
-        $deadTime       = $param['deadTime'] ?? null;
-        $aheadTime      = $param['aheadTime'] ?? null;
-        $outTime        = $param['outTime'] ?? null;
-        $startAt        = $param['startAt'] ?? null;
-        $splitCnt       = $param['splitCnt'] ?? null;
-        $schdMode       = $param['schdMode'];
-
-        $schdParams     = (new ModelProd())->prdSchdParam();
-        $arrangeDays    = (new ModelProd())->calendar($year, $month, 1, 1);
-        $prodOrdersList = (new ModelProd())->prodOrdersInspection($prodLine, $year, $month, implode(',', $prodList), $phase);
-
-        foreach ($schdParams as $schdParam) {
-            if ($schdParam['ppi_extra_key'] === 'ppi_bisection_cnt') {
-                // 工序生产量等分数
-                $splitCount = $schdParam['ppi_extra_value'];
-            }
-
-            if ($schdParam['ppi_extra_key'] === 'ppi_workday_time_range') {
-                // 每天的上下班时间，字符串
-                $worktimeStr = $schdParam['ppi_extra_value'];
-            }
-        }
-        if ($splitCnt) {
-            $splitCount = $splitCnt;
-        }
-        preg_match_all('/[\d:]{8}/', $worktimeStr, $worktimeArr);
-        list(
-            $morningWorktimeStart,
-            $morningWorktimeStop,
-            $afternoonWorktimeStart,
-            $afternoonWorktimeStop,
-            $eveningWorktimeStart,
-            $eveningWorktimeStop
-        ) = $worktimeArr[0];
-        // 计算中午休息时间
-        if ($afternoonWorktimeStart && $morningWorktimeStop) {
-            $this->morningWorkRest = strtotime($afternoonWorktimeStart)  - strtotime($morningWorktimeStop);
-        }
-        // 计算下午休息时间
-        if ($eveningWorktimeStart && $afternoonWorktimeStop) {
-            $this->afternoonWorkRest = strtotime($eveningWorktimeStart)  - strtotime($afternoonWorktimeStop);
-        }
-
-        $firstWorkdayOfMonth = "$year-$month-01";
-        // 月初是休息日则下一非休息天开始排程
-        foreach ($arrangeDays as $k => $v) {
-            $currArrange = current($arrangeDays);
-            if ($firstWorkdayOfMonth === $currArrange['ppi_cald_date']) {
-                // 如果是休息日
-                if ($currArrange['ppi_cald_is_rest']) {
-                    $firstWorkdayOfMonth = date(
-                        self::WORK_DATE_FORMAT,
-                        strtotime(
-                            '1 day',
-                            strtotime($firstWorkdayOfMonth)
-                        )
-                    );
-                    array_shift($arrangeDays);
-                    // 不是休息日，按设定的上下班时间排程
-                } else {
-                    // if (isset($currArrange['morning'])) {
-                    //     $morningWorktimeStart = explode(' - ', $currArrange['morning'])[0];
-                    //     // next($arrangeDays);
-                    // }
-                }
-            } else {
-                $startSchDate = $firstWorkdayOfMonth;
-                break;
-            }
-        }
-        $startSchDate    = $firstWorkdayOfMonth;
-
-        // 排程开始日期
-        $schStartAt     = strtotime("$startSchDate $morningWorktimeStart");
-        if ($startAt) {
-            $schStartAt = strtotime($startAt);
-        }
-
-        // =========== 设置生产单中工序耗时最长的工序为其它工序的耗时 ====================
-        $phsCost = [];
-        foreach ($prodOrdersList as $orderItem) {
-            // 是否在 $prodOrdersInfo 中存在
-            $isExisted = false;
-            foreach ($phsCost as $orderInfo) {
-                if ($orderInfo['id'] == $orderItem['id']) {
-                    $isExisted = true;
-                    break;
-                }
-            }
-
-            if (!$isExisted) {
-                $phsCost[] = [
-                    'id' => $orderItem['id'],
-                ];
-            }
-
-            foreach ($phsCost as $k => $v) { # 首先是连续不休息地排程
-                if ($v['id'] == $orderItem['id']) {
-                    $phsCost[$k]['cost'][] = $orderItem['map_ppi_cost_time'];
-                }
-            }
-        }
-        $phsCost = array_map(function ($e) {
-            return max($e['cost']);
-        }, $phsCost);
-        // ===========================================================================
-
-        // 工序排程开始时间
-        $phaseStartAt   = $schStartAt;
-        // 重新组织生产单信息，将每一款款号的工序存于生产单的 phases 键中
-        $prodOrdersInfo = [];
-        foreach ($prodOrdersList as $orderItem) {
-
-
-            // 是否在 $prodOrdersInfo 中存在
-            $isExisted = false;
-            foreach ($prodOrdersInfo as $orderInfo) {
-                if ($orderInfo['prdoid'] == $orderItem['id']) {
-                    $isExisted = true;
-                    break;
-                }
-            }
-
-            // 不存在则插入数据
-            if (!$isExisted) {
-                $prodOrdersInfo[] = [
-                    'prdoid'            => $orderItem['id'],
-                    'ppi_workshop_name' => $orderItem['ppi_workshop_name'],
-                    'ppi_customer_no'   => $orderItem['ppi_customer_no'],
-                    'ppi_customer_pono' => $orderItem['ppi_customer_pono'],
-                    'ppi_prd_item'      => $orderItem['ppi_prd_item'],
-                    'ppi_po_qty'        => $orderItem['ppi_po_qty'] ?: $orderItem['ppi_expected_qty'],
-                    'ppi_expected_qty'  => $orderItem['ppi_expected_qty'],
-                    'ppi_actual_qty'    => $orderItem['ppi_actual_qty'],
-                    'ppi_expected_date' => $orderItem['ppi_expected_date'],
-                    'ppi_actual_date'   => $orderItem['ppi_actual_date'],
-                    'ppi_po_sort'       => $orderItem['ppi_po_sort'],
-                    'ppi_is_dirty'      => $orderItem['ppi_is_dirty']
-                ];
-            }
-
-            // 根据已插入的生产单号匹配其工序，开始计算排程，
-            // 排程逻辑为：生产单的每一单的各个工序根据工序耗时和生产量来计算，
-            // 默认排程开始时间为每月的第一个工作日，
-            // 生产单的第一工序开始时间为上一生产单第一工序完成时间。
-            // 一个生产单中的每个工序生产量会按数量等分，
-            // 第一个工序的第一等分生产量完成时间，则是后面工序的开始时间，依次类推
-            // 排到休息日、停滞时间、前置时间（提前生产时间 map_ppi_aheadtime）、外发时间（外包出去工序的完成时间），则累加进去。
-            // 工序生产分为主、辅流程生产。辅流程工序开始时间为上一生产单第一工序的第一等分生产量完成时间。
-            foreach ($prodOrdersInfo as $k => $v) { # 首先是连续不休息地排程
-                if ($v['prdoid'] == $orderItem['id']) {
-                    #由于数据有问题，取 ppi_po_qty，ppi_expected_qty 中的其中一个值，以 ppi_po_qty 优先
-                    $prdTotal        = $prodOrdersInfo[$k]['ppi_po_qty'] ?: $prodOrdersInfo[$k]['ppi_expected_qty'];
-
-
-                    switch ($schdMode) {
-                        case 'SELF_COST':
-                            // 采用自身耗时
-                            $singlePhaseNeed = $splitCount * ($costTime ?: $orderItem['map_ppi_cost_time']);
-                            $allPhaseNeed    = $prdTotal * ($costTime ?: $orderItem['map_ppi_cost_time']);
-                            break;
-                        case 'MAX_COST':
-                            // 工序耗时为整张生产单中最大工序耗时
-                            $singlePhaseNeed = $splitCount * ($costTime ?: $phsCost[$k]);
-                            $allPhaseNeed    = $prdTotal * ($costTime ?: $phsCost[$k]);
-                            break;
-                        default:
-                            // 工序耗时为整张生产单中最大工序耗时
-                            $singlePhaseNeed = $splitCount * ($costTime ?: $phsCost[$k]);
-                            $allPhaseNeed    = $prdTotal * ($costTime ?: $phsCost[$k]);
-                    }
-
-                    #是否为第一工序
-                    $isFirstPhase    = false;
-
-                    // 生产单的第一道工序
-                    if (!isset($prodOrdersInfo[$k]['phases'])) {
-                        // 不是生产单列表第一单时，使开始时间为上一生产单第一工序等分生产量的完成时间。辅流程逻辑相同
-                        if ($k !== 0) {
-                            $prevPrdOrderPhs = $prodOrdersInfo[$k - 1]['phases'];
-                            $phaseStartAt    = strtotime($prevPrdOrderPhs[0]['ppi_phs_complete']);
-                            $isFirstPhase    = true;
-                        }
-
-                        // 生产单的第二道工序
-                    } else if (count($prodOrdersInfo[$k]['phases']) === 1) {
-                        // 主辅流程处理
-                        if ($orderItem['map_ppi_isvice'] === '0') {
-                            $phaseStartAt = strtotime(current($prodOrdersInfo[$k]['phases'])['ppi_phs_start']) + $singlePhaseNeed;
-                        } else {
-                            // 辅流程，使开始时间为上一生产单第一工序等分生产量的完成时间
-                            $prevPrdOrderPhs = $prodOrdersInfo[$k - 1]['phases'];
-                            $phaseStartAt    = strtotime($prevPrdOrderPhs[0]['ppi_phs_complete']);
-                            $isFirstPhase    = true;
-                        }
-
-                        // 生产单的之后的工序
-                    } else if (next($prodOrdersInfo[$k]['phases'])) {
-                        // 主辅流程处理
-                        if ($orderItem['map_ppi_isvice'] === '0') {
-                            $phaseStartAt = strtotime(current($prodOrdersInfo[$k]['phases'])['ppi_phs_start']) + $singlePhaseNeed;
-                        } else {
-                            // 辅流程，使开始时间为上一生产单第一工序等分生产量的完成时间
-                            $prevPrdOrderPhs = $prodOrdersInfo[$k - 1]['phases'];
-                            $phaseStartAt    = strtotime($prevPrdOrderPhs[0]['ppi_phs_complete']);
-                            $isFirstPhase    = true;
-                        }
-                    }
-
-                    // 如果有停滞时间则算入排程时间
-                    if ($orderItem['map_ppi_deadtime'] > 0) {
-                        $phaseStartAt += ($deadTime ?: $orderItem['map_ppi_deadtime']);
-                    }
-
-                    // 处理工序开始时间。加入工作日上下班休息时间
-                    $phaseActualStartAt
-                        = $this->handlePhaseStartTime(
-                            $phaseStartAt,
-                            $worktimeArr[0],
-                            $isFirstPhase,
-                            $arrangeDays
-                        );
-                    // 加入休息日，排到休息日则向后算入一天
-                    foreach ($arrangeDays as $v) {
-                        if (
-                            current($arrangeDays) &&
-                            current($arrangeDays)['ppi_cald_date']
-                            === date(self::WORK_DATE_FORMAT, $phaseActualStartAt)
-                        ) {
-                            if (current($arrangeDays)['ppi_cald_is_rest'] === 1) {
-                                $phaseActualStartAt += self::SECONDS_OF_DAY;
-                            }
-                            next($arrangeDays);
-                        } else {
-                            break;
-                        }
-                    }
-
-                    // 工序等分生产量完成时间
-                    if ($orderItem['map_ppi_outime'] > 0) { // 如果有外发时间则以外发时间计算
-                        $phaseCompleteAt = $phaseActualStartAt + ($outTime ?: $orderItem['map_ppi_outime']);
-                    } else { //没有外发时间，则以耗时计算
-                        $phaseCompleteAt = $phaseActualStartAt + $allPhaseNeed;
-                    }
-
-                    // 处理工序完成时间。加入工作日上下班休息时间
-                    $phaseActualCompleteAt =
-                        $this->handlePhaseCompleteTime(
-                            $phaseActualStartAt,
-                            $phaseCompleteAt,
-                            $worktimeArr[0],
-                            $arrangeDays
-                        );
-
-                    foreach ($arrangeDays as $arrangeDay) {
-                        if (
-                            strtotime($arrangeDay['ppi_cald_date']) <
-                            $phaseActualCompleteAt &&
-                            $arrangeDay['ppi_cald_is_rest'] === 1
-                        ) {
-                            $phaseActualCompleteAt
-                                += self::SECONDS_OF_DAY;
-                        }
-                    }
-
-                    $prodOrdersInfo[$k]['phases'][] = [
-                        'map_ppi_phsid'     => $orderItem['map_ppi_phsid'],
-                        'map_ppi_phs'       => $orderItem['map_ppi_phs'] ?: $orderItem['map_ppi_phs_desc'],
-                        'map_ppi_seq'       => $orderItem['map_ppi_seq'],
-                        'map_ppi_phs_desc'  => $orderItem['map_ppi_phs_desc'],
-                        'map_ppi_cost_time' => $orderItem['map_ppi_cost_time'],
-                        'map_ppi_aheadtime' => $orderItem['map_ppi_aheadtime'],
-                        'map_ppi_deadtime'  => $orderItem['map_ppi_deadtime'],
-                        'map_ppi_outime'    => $orderItem['map_ppi_outime'],
-                        'map_ppi_isvice'  => $orderItem['map_ppi_isvice'],
-                        'map_ppi_isdirty'   => $orderItem['map_ppi_isdirty'],
-                        'ppi_phs_start'     => date(self::WORK_DATETIME_FORMAT, $phaseActualStartAt),
-                        'ppi_phs_complete'  => date(self::WORK_DATETIME_FORMAT, $phaseActualCompleteAt)
-                    ];
-                }
-            }
-        }
-
-        $rtn['result'] = true;
-        $rtn['data']   = $prodOrdersInfo;
 
         return json($rtn);
     }

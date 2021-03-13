@@ -6,7 +6,7 @@
  * @FilePath: \sverp\app\common.php
  */
 // 应用公共文件
-require_once '../vendor/autoload.php';
+#require_once '../vendor/autoload.php';
 
 use Firebase\JWT\JWT;
 use AlibabaCloud\Client\AlibabaCloud;

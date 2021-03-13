@@ -2,7 +2,7 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-18 14:56:05
- * @LastEditTime: 2021-03-05 16:00:25
+ * @LastEditTime: 2021-03-13 09:17:44
  * @LastEditors: yanbuw1911
  * @Description: 生管部模型
  * @FilePath: /sverp/app/webApi/model/Prod.php
@@ -205,75 +205,6 @@ class Prod
                             phstbl.map_ppi_phs,
                             potbl.id 
                         ORDER BY
-                            potbl.id,
-                            phstbl.map_ppi_phsid";
-        // 生产单列表，包含一款款号多个工序的糅余记录
-        $prodOrdersList = Db::query($prodOrdersSql, [$prodLine, $year, $month]);
-
-        return $prodOrdersList;
-    }
-
-    /**
-     * 生产单列表
-     * @param  string $prodLine 生产线
-     * @param  string $year 生产单年份
-     * @param  string $month 生产单月份
-     * @param  string $prodList 生产单主键
-     * @return array $prodOrdersList 生产单列表，包含一款款号多个工序的糅余记录，调试方法
-     * @access public
-     */
-    public function prodOrdersInspection(string $prodLine, string $year, string $month, string $prodList, string $phsid): array
-    {
-        $prodOrderTbl   = 'prodlib_prdschd_initpo';
-        $prodPhasesTbl  = 'prodlibmap_prdschd_initpdo2phs';
-
-        $cond = "";
-        if ($prodList) {
-            $cond .= "AND potbl.id IN ( $prodList )";
-        }
-        if ($phsid) {
-            $cond .= "AND phstbl.map_ppi_phsid = '$phsid'";
-        }
-
-        $prodOrdersSql  = "SELECT
-                            potbl.id,
-                            potbl.ppi_workshop_name,
-                            potbl.ppi_customer_no,
-                            potbl.ppi_customer_pono,
-                            potbl.ppi_prd_item,
-                            potbl.ppi_po_qty,
-                            potbl.ppi_expected_qty,
-                            potbl.ppi_actual_qty,
-                            potbl.ppi_expected_date,
-                            potbl.ppi_actual_date,
-                            potbl.ppi_po_sort,
-                            potbl.ppi_is_dirty,
-                            phstbl.map_ppi_phsid,
-                            phstbl.map_ppi_phs,
-                            SUM( phstbl.map_ppi_cost_time ) map_ppi_cost_time,
-                            phstbl.map_ppi_seq,
-                            phstbl.map_ppi_phs_desc,
-                            SUM( phstbl.map_ppi_aheadtime ) map_ppi_aheadtime,
-                            SUM( phstbl.map_ppi_deadtime ) map_ppi_deadtime,
-                            SUM( phstbl.map_ppi_outime ) map_ppi_outime,
-                            SUM( IF( phstbl.map_ppi_ismaster = 1, 0, 1 ) ) map_ppi_isvice,
-                            phstbl.map_ppi_isdirty 
-                        FROM
-                            $prodPhasesTbl AS phstbl,
-                            $prodOrderTbl AS potbl 
-                        WHERE
-                            phstbl.map_ppi_cost_time > 0 
-                            AND potbl.ppi_workshop = ? 
-                            AND potbl.ppi_po_year = ? 
-                            AND potbl.ppi_po_month = ? 
-                            $cond 
-                            AND phstbl.map_ppi_prd_item = potbl.ppi_prd_item 
-                        GROUP BY
-                            phstbl.map_ppi_phsid,
-                            phstbl.map_ppi_phs,
-                            potbl.id 
-                        ORDER BY
-                            potbl.ppi_po_sort,
                             potbl.id,
                             phstbl.map_ppi_phsid";
         // 生产单列表，包含一款款号多个工序的糅余记录
