@@ -2,7 +2,7 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-18 15:00:44
- * @LastEditTime: 2021-03-13 09:17:27
+ * @LastEditTime: 2021-03-18 10:36:59
  * @LastEditors: yanbuw1911
  * @Description: 
  * @FilePath: /sverp/app/webApi/controller/Prod.php
@@ -13,6 +13,7 @@ namespace app\webApi\controller;
 use app\webApi\model\Prod as ModelProd;
 use Dompdf\Dompdf;
 use Dompdf\Options;
+use think\facade\Cache;
 
 class Prod
 {
@@ -291,10 +292,19 @@ class Prod
         $params         = $this->getAutoSchdParam();
         $year           = $params['year'];
         $month          = $params['month'];
+        $prodLine       = $params['prodLine'];
         $prodOrdersList = $params['prodOrdersList'];
         $arrangeDays    = $params['arrangeDays'];
         $schdParams     = $params['schdParams'];
         $schdMode       = $params['schdMode'];
+
+        $cacheKey = "autoschd:$year:$month:$prodLine";
+        $autoschdCache = Cache::store('redis')->get($cacheKey);
+        if ($autoschdCache) {
+            $rtn['result'] = true;
+            $rtn['data']   = unserialize($autoschdCache);
+            return json($rtn);
+        }
 
         foreach ($schdParams as $schdParam) {
             if ($schdParam['ppi_extra_key'] === 'ppi_bisection_cnt') {
@@ -380,17 +390,13 @@ class Prod
                 }
             }
         }
-        $phsCost = array_map(function ($e) {
-            return max($e['cost']);
-        }, $phsCost);
+        $phsCost = array_map(fn ($e) => max($e['cost']), $phsCost);
         // ===========================================================================
         // 工序排程开始时间
         $phaseStartAt   = $schStartAt;
         // 重新组织生产单信息，将每一款款号的工序存于生产单的 phases 键中
         $prodOrdersInfo = [];
         foreach ($prodOrdersList as $orderItem) {
-
-
             // 是否在 $prodOrdersInfo 中存在
             $isExisted = false;
             foreach ($prodOrdersInfo as $orderInfo) {
@@ -582,9 +588,10 @@ class Prod
             }
         }
 
+        Cache::store('redis')->set($cacheKey, serialize($prodOrdersInfo));
+
         $rtn['result'] = true;
         $rtn['data']   = $prodOrdersInfo;
-
         return json($rtn);
     }
 
@@ -632,6 +639,7 @@ class Prod
         return [
             'year'           => $year,
             'month'          => $month,
+            'prodLine'          => $prodLine,
             'prodOrdersList' => $prodOrdersList,
             'arrangeDays'    => $arrangeDays,
             'schdParams'     => $schdParams,
