@@ -2,7 +2,7 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-18 14:56:05
- * @LastEditTime: 2021-03-13 09:17:44
+ * @LastEditTime: 2021-03-18 14:45:24
  * @LastEditors: yanbuw1911
  * @Description: 生管部模型
  * @FilePath: /sverp/app/webApi/model/Prod.php
@@ -251,5 +251,22 @@ class Prod
             ->update(['ppi_extra_value' => $timestr]);
 
         return false !== $res;
+    }
+
+    public function schdRecords(string $year, string $month, string $prodLine): array
+    {
+        $sql = "SELECT *
+                    FROM prodlib_prdschd_auto AS A,
+                        (SELECT *
+                        FROM prodlib_prdschd_initpo
+                        WHERE ppi_po_year = ? AND ppi_po_month = ? AND ppi_workshop = ?) AS B
+                    WHERE A.ppa_prdo_id = B.id";
+
+        return Db::query($sql, [$year, $month, $prodLine]);
+    }
+
+    public function insertSchdRecords(array $records): bool
+    {
+        return false !== Db::table('prodlib_prdschd_auto')->insertAll($records);
     }
 }

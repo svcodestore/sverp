@@ -2,7 +2,7 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-18 15:00:44
- * @LastEditTime: 2021-03-18 10:36:59
+ * @LastEditTime: 2021-03-18 14:43:17
  * @LastEditors: yanbuw1911
  * @Description: 
  * @FilePath: /sverp/app/webApi/controller/Prod.php
@@ -299,10 +299,10 @@ class Prod
         $schdMode       = $params['schdMode'];
 
         $cacheKey = "autoschd:$year:$month:$prodLine";
-        $autoschdCache = Cache::store('redis')->get($cacheKey);
+        $autoschdCache = unserialize(Cache::store('redis')->get($cacheKey));
         if ($autoschdCache) {
             $rtn['result'] = true;
-            $rtn['data']   = unserialize($autoschdCache);
+            $rtn['data']   = $autoschdCache;
             return json($rtn);
         }
 
@@ -369,7 +369,6 @@ class Prod
         // =========== 设置生产单中工序耗时最长的工序为其它工序的耗时 ====================
         $phsCost = [];
         foreach ($prodOrdersList as $orderItem) {
-            // 是否在 $prodOrdersInfo 中存在
             $isExisted = false;
             foreach ($phsCost as $orderInfo) {
                 if ($orderInfo['id'] == $orderItem['id']) {
@@ -390,16 +389,16 @@ class Prod
                 }
             }
         }
-        $phsCost = array_map(fn ($e) => max($e['cost']), $phsCost);
+        $maxPhsCost = array_map(fn ($e) => max($e['cost']), $phsCost);
         // ===========================================================================
         // 工序排程开始时间
         $phaseStartAt   = $schStartAt;
         // 重新组织生产单信息，将每一款款号的工序存于生产单的 phases 键中
         $prodOrdersInfo = [];
+        $tmpProdOrdersInfo = [];
         foreach ($prodOrdersList as $orderItem) {
-            // 是否在 $prodOrdersInfo 中存在
             $isExisted = false;
-            foreach ($prodOrdersInfo as $orderInfo) {
+            foreach ($tmpProdOrdersInfo as $orderInfo) {
                 if ($orderInfo['prdoid'] == $orderItem['id']) {
                     $isExisted = true;
                     break;
@@ -408,7 +407,7 @@ class Prod
 
             // 不存在则插入数据
             if (!$isExisted) {
-                $prodOrdersInfo[] = [
+                $prodOrder = [
                     'prdoid'            => $orderItem['id'],
                     'ppi_workshop_name' => $orderItem['ppi_workshop_name'],
                     'ppi_customer_no'   => $orderItem['ppi_customer_no'],
@@ -422,6 +421,14 @@ class Prod
                     'ppi_po_sort'       => $orderItem['ppi_po_sort'],
                     'ppi_is_dirty'      => $orderItem['ppi_is_dirty']
                 ];
+
+                if (count($tmpProdOrdersInfo) > 1) {
+                    $prodOrdersInfo[] = array_shift($tmpProdOrdersInfo);
+                }
+                if (count($prodOrdersInfo) + count($tmpProdOrdersInfo) === count($phsCost) - 1) {
+                    $prodOrdersInfo[] = end($tmpProdOrdersInfo);
+                }
+                array_push($tmpProdOrdersInfo, $prodOrder);
             }
 
             // 根据已插入的生产单号匹配其工序，开始计算排程，
@@ -432,10 +439,10 @@ class Prod
             // 第一个工序的第一等分生产量完成时间，则是后面工序的开始时间，依次类推
             // 排到休息日、停滞时间、前置时间（提前生产时间 map_ppi_aheadtime）、外发时间（外包出去工序的完成时间），则累加进去。
             // 工序生产分为主、辅流程生产。辅流程工序开始时间为上一生产单第一工序的第一等分生产量完成时间。
-            foreach ($prodOrdersInfo as $k => $v) {
+            foreach ($tmpProdOrdersInfo as $k => $v) {
                 if ($v['prdoid'] == $orderItem['id']) {
                     #由于数据有问题，取 ppi_po_qty，ppi_expected_qty 中的其中一个值，以 ppi_po_qty 优先
-                    $prdTotal        = $prodOrdersInfo[$k]['ppi_po_qty'] ?: $prodOrdersInfo[$k]['ppi_expected_qty'];
+                    $prdTotal        = $tmpProdOrdersInfo[$k]['ppi_po_qty'] ?: $tmpProdOrdersInfo[$k]['ppi_expected_qty'];
                     $costTime        = 0;
 
                     switch ($schdMode) {
@@ -447,13 +454,13 @@ class Prod
                             break;
                         case 'MAX_COST':
                             // 工序耗时为整张生产单中最大工序耗时
-                            $costTime        = $orderItem['map_ppi_cost_time'] > 0 ? $phsCost[$k] : 0;
+                            $costTime        = $orderItem['map_ppi_cost_time'] > 0 ? $maxPhsCost[$k] : 0;
                             $singlePhaseNeed = $splitCount * $costTime;
                             $allPhaseNeed    = $prdTotal * $costTime;
                             break;
                         default:
                             // 工序耗时为整张生产单中最大工序耗时
-                            $costTime        = $orderItem['map_ppi_cost_time'] > 0 ? $phsCost[$k] : 0;
+                            $costTime        = $orderItem['map_ppi_cost_time'] > 0 ? $maxPhsCost[$k] : 0;
                             $singlePhaseNeed = $splitCount * $costTime;
                             $allPhaseNeed    = $prdTotal * $costTime;
                     }
@@ -465,35 +472,35 @@ class Prod
                     $isFirstPhase    = false;
 
                     // 生产单的第一道工序
-                    if (!isset($prodOrdersInfo[$k]['phases'])) {
+                    if (!isset($tmpProdOrdersInfo[$k]['phases'])) {
                         // 不是生产单列表第一单时，使开始时间为上一生产单第一工序等分生产量的完成时间。辅流程逻辑相同
                         if ($k !== 0) {
-                            $prevPrdOrderPhs = $prodOrdersInfo[$k - 1]['phases'];
+                            $prevPrdOrderPhs = $tmpProdOrdersInfo[$k - 1]['phases'];
                             $phaseStartAt    = strtotime($prevPrdOrderPhs[0]['ppi_phs_complete']);
                             $isFirstPhase    = true;
                         }
 
                         // 生产单的第二道工序
-                    } else if (count($prodOrdersInfo[$k]['phases']) === 1) {
+                    } else if (count($tmpProdOrdersInfo[$k]['phases']) === 1) {
                         // 主辅流程处理
                         if ($orderItem['map_ppi_isvice'] === '0') {
-                            $phaseStartAt = strtotime(current($prodOrdersInfo[$k]['phases'])['ppi_phs_start']) + $singlePhaseNeed;
+                            $phaseStartAt = strtotime(current($tmpProdOrdersInfo[$k]['phases'])['ppi_phs_start']) + $singlePhaseNeed;
                         } else {
                             // 辅流程，使开始时间为上一生产单第一工序等分生产量的完成时间
-                            $prevPrdOrderPhs = $prodOrdersInfo[$k - 1]['phases'];
+                            $prevPrdOrderPhs = $tmpProdOrdersInfo[$k - 1]['phases'];
                             $phaseStartAt    = strtotime($prevPrdOrderPhs[0]['ppi_phs_complete']);
                             $isFirstPhase    = true;
                         }
 
                         // 生产单的之后的工序
-                    } else if (next($prodOrdersInfo[$k]['phases'])) {
+                    } else if (next($tmpProdOrdersInfo[$k]['phases'])) {
                         // 主辅流程处理
                         if ($orderItem['map_ppi_isvice'] === '0') {
-                            $phaseStartAt = strtotime(current($prodOrdersInfo[$k]['phases'])['ppi_phs_start']) + $singlePhaseNeed;
+                            $phaseStartAt = strtotime(current($tmpProdOrdersInfo[$k]['phases'])['ppi_phs_start']) + $singlePhaseNeed;
                         } else {
                             // 辅流程，使开始时间为上一生产单第一工序等分生产量的完成时间
                             if ($k > 0) {
-                                $prevPrdOrderPhs = $prodOrdersInfo[$k - 1]['phases'];
+                                $prevPrdOrderPhs = $tmpProdOrdersInfo[$k - 1]['phases'];
                                 $phaseStartAt    = strtotime($prevPrdOrderPhs[0]['ppi_phs_complete']);
                             } else {
                                 $phaseStartAt    = $schStartAt;
@@ -580,18 +587,39 @@ class Prod
                     ];
 
                     if ($orderItem['map_ppi_isvice'] === '0') {
-                        $prodOrdersInfo[$k]['phases'][] = $append;
+                        $tmpProdOrdersInfo[$k]['phases'][] = $append;
                     } else {
-                        array_unshift($prodOrdersInfo[$k]['phases'], $append);
+                        array_unshift($tmpProdOrdersInfo[$k]['phases'], $append);
                     }
                 }
             }
         }
 
-        Cache::store('redis')->set($cacheKey, serialize($prodOrdersInfo));
+        $prodOrdersInfo[] = end($tmpProdOrdersInfo);
+        $m = new ModelProd;
+        $isExistedInDb = $m->schdRecords($year, $month, $prodLine);
+        $result = true;
+        if (count($isExistedInDb) < 1) {
+            $schdRecords = [];
+            foreach ($prodOrdersInfo as $v) {
+                foreach ($v['phases'] as $phsInfo) {
+                    $schdRecords[] = [
+                        'ppa_prdo_id' => $v['prdoid'],
+                        'ppa_phs_id' => $phsInfo['map_ppi_phsid'],
+                        'ppa_phs' => $phsInfo['map_ppi_phs'],
+                        'ppa_phs_start' => $phsInfo['ppi_phs_start'],
+                        'ppa_phs_complete' => $phsInfo['ppi_phs_complete']
+                    ];
+                }
+            }
+            $result = $m->insertSchdRecords($schdRecords);
+        }
+        $rtn['result'] = $result;
+        if ($result) {
+            Cache::store('redis')->set($cacheKey, serialize($prodOrdersInfo));
+            $rtn['data']   = $prodOrdersInfo;
+        }
 
-        $rtn['result'] = true;
-        $rtn['data']   = $prodOrdersInfo;
         return json($rtn);
     }
 
