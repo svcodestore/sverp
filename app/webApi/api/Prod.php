@@ -2,7 +2,7 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-18 15:07:48
- * @LastEditTime: 2021-03-05 14:54:25
+ * @LastEditTime: 2021-03-18 14:57:50
  * @LastEditors: yanbuw1911
  * @Description: 
  * @FilePath: /sverp/app/webApi/api/Prod.php
@@ -13,7 +13,7 @@ namespace app\webApi\api;
 use app\BaseController;
 use app\webApi\controller\Prod as ControllerProd;
 
-class Prod extends BaseController
+class Prod
 {
     public function getCalenderData()
     {
@@ -63,10 +63,5 @@ class Prod extends BaseController
     public function getAutoSchdParam()
     {
         return json((new ControllerProd())->getAutoSchdParam());
-    }
-
-    public function inspectSchedule()
-    {
-        return (new ControllerProd())->inspectSchedule();
     }
 }

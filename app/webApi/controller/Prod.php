@@ -2,7 +2,7 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-18 15:00:44
- * @LastEditTime: 2021-03-18 14:43:17
+ * @LastEditTime: 2021-03-19 07:51:08
  * @LastEditors: yanbuw1911
  * @Description: 
  * @FilePath: /sverp/app/webApi/controller/Prod.php
@@ -290,10 +290,16 @@ class Prod
     public function autoSchedule()
     {
         $params         = $this->getAutoSchdParam();
+        $prodOrdersList = $params['prodOrdersList'];
+        if (count($prodOrdersList) === 0) {
+            return json([
+                'result' => true,
+                'data'   => []
+            ]);
+        }
         $year           = $params['year'];
         $month          = $params['month'];
         $prodLine       = $params['prodLine'];
-        $prodOrdersList = $params['prodOrdersList'];
         $arrangeDays    = $params['arrangeDays'];
         $schdParams     = $params['schdParams'];
         $schdMode       = $params['schdMode'];
@@ -635,6 +641,12 @@ class Prod
 
         // 生产订单
         $prodOrdersList     = (new ModelProd())->prodOrders($prodLine, $year, $month);
+        if (count($prodOrdersList) === 0) {
+            return [
+                'prodOrdersList' => $prodOrdersList
+            ];
+        }
+
         // 行事历
         $arrangeDays        = (new ModelProd())->calendar($year, $month, 1, 1);
         foreach ($arrangeDays as $k => $v) {
@@ -667,7 +679,7 @@ class Prod
         return [
             'year'           => $year,
             'month'          => $month,
-            'prodLine'          => $prodLine,
+            'prodLine'       => $prodLine,
             'prodOrdersList' => $prodOrdersList,
             'arrangeDays'    => $arrangeDays,
             'schdParams'     => $schdParams,
