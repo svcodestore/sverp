@@ -27,7 +27,8 @@ return [
         'redis' => [
             // 驱动方式
             'type'       => 'redis',
-            'host'       => '127.0.0.1'
+            'host'       => '127.0.0.1',
+            'password'   => 'startRedis'
         ],
     ],
 ];
