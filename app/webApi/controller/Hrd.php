@@ -4,7 +4,7 @@ declare(strict_types=1);
 /*
 * @Author: yanbuw1911
 * @Date: 2021-01-07 14:15:16
- * @LastEditTime: 2021-03-03 13:49:25
+ * @LastEditTime: 2021-04-16 13:37:45
  * @LastEditors: yanbuw1911
 * @Description:
  * @FilePath: /sverp/app/webApi/controller/Hrd.php
@@ -72,6 +72,14 @@ class Hrd
         $materialId = input('post.materialId');
         $rtn['result'] = true;
         $rtn['data'] = (new ModelHrd())->outboundMaterialList($materialId);
+
+        return json($rtn);
+    }
+
+    public function delOutboundMaterial()
+    {
+        $id = input('post.id');
+        $rtn['result'] = (new ModelHrd())->delOutboundMaterial($id);
 
         return json($rtn);
     }

@@ -4,7 +4,7 @@ declare(strict_types=1);
 /*
 * @Author: yanbuw1911
 * @Date: 2021-01-07 14:07:28
- * @LastEditTime: 2021-03-03 13:16:35
+ * @LastEditTime: 2021-04-16 13:35:11
  * @LastEditors: yanbuw1911
 * @Description:
  * @FilePath: /sverp/app/webApi/model/Hrd.php
@@ -171,6 +171,12 @@ class Hrd
             ->toArray();
 
         return $res;
+    }
+
+    public function delOutboundMaterial(string $id): bool
+    {
+        $t = 'hrdlib_outbound_material';
+        return false !== Db::table($t)->where('id', $id)->delete();
     }
 
     public function setMaterialStock(array $data, string $usr, bool $transaction = true): bool
