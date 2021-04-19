@@ -2,8 +2,8 @@
 /*
  * @Author: yu chen
  * @Date: 2020-12-07 16:23:05
- * @LastEditTime: 2021-01-22 14:21:55
- * @LastEditors: yu chen
+ * @LastEditTime: 2021-04-19 08:52:23
+ * @LastEditors: Mok.CH
  * @Description: In User Settings Edit
  * @FilePath: \sverp\app\webApi\controller\Record.php
  */
@@ -15,6 +15,8 @@ namespace app\webApi\controller;
 use app\webApi\model\Record as recordModel;
 use app\webApi\validate\Record as recordValidate;
 use think\exception\ValidateException;
+
+use think\facade\Log;
 
 require_once '../vendor/phpqrcode/phpqrcode.php';
 
@@ -99,7 +101,7 @@ class Record
           $data['data'][$key]['expendtime'] = 0;
         }
         $data['data'][$key]['alarmtime'] = date('Y-m-d H:i:s', $value['alarmtime']);
-        $data['data'][$key]['reachtime'] = date('Y-m-d H:i:s', $value['reachtime']);
+        $data['data'][$key]['reachtime'] = date('Y-m-d H:i:s', intval($value['reachtime']));
         $data['data'][$key]['repairtime'] = date('Y-m-d H:i:s', $value['repairtime']);
       }
     }
@@ -107,6 +109,24 @@ class Record
     $data['msg'] = 'success';
     return json($data);
   }
+
+  public function getRepairDetail () {
+    $data['code'] = 1;
+    $data['msg'] = 'Object Not Found';
+
+    $id = request()->param('id');
+    
+    $record_info = (new recordModel)->get_record_detail($id);
+    $data['data'] = $record_info;
+
+    if ($record_info) {
+      $data['code'] = 0;
+      $data['msg'] = 'success';
+    }
+    
+    return json($data);
+  }
+
   /**
    * 故障统计
    * @param mechenum
@@ -293,6 +313,7 @@ class Record
   public function sendMsg()
   {
     $param = request()->param('param');
+    Log::debug($param);
     if (!empty($param['row']['line_num']) && !empty($param['row']['produc_num'] && !empty($param['row']['mache_num']) && !empty($param['row']['mache_name']))) {
       $content['part'] = 'TPM';
       $content['number'] = $param['row']['line_num'];
@@ -328,7 +349,7 @@ class Record
         'repair_img' => $img ? $img : '',
       ];
       $content = ['department' => $param['noticeDepartment'], 'meche' => $param['mecheName'], 'cause' => $param['cause'], 'time' => date('Y-m-d H:i:s', time())];
-      $res = smsSend($param['phone'], '文迪软件', 'SMS_210075241', $content); //发送短信
+      // $res = smsSend($param['phone'], '文迪软件', 'SMS_210075241', $content); //发送短信
       $res['Code'] = 'OK';
       if ($res['Code'] === 'OK') {
         $record = new recordModel;
@@ -491,8 +512,8 @@ class Record
             $result = $record->getFitting($field, $where, $page = 0, $limit = 10000);
           }
           if (!empty($result) && !empty($result[0]['fitting_num']) && ($result[0]['fitting_num'] - $v) >= 0) {
-            $data['fitting_num'] = $result[0]['fitting_num'] - $v;
-            $data['fitting_consume_num'] = $result[0]['fitting_num'] + $v;
+            // $data['fitting_num'] = $result[0]['fitting_num'] - $v;
+            $data['fitting_consume_num'] = $result[0]['fitting_consume_num'] + $v;
             $data['fitting_msg_status'] = intval($result[0]['fitting_msg_status']); //由于下一次循环没有定义该值所以需要默认数据库的值
             if ($data['fitting_num'] < $result[0]['fitting_msg_number'] && $result[0]['fitting_msg_status'] === 1) {
               $data['fitting_msg_status'] = -1;
@@ -531,4 +552,15 @@ class Record
       return json($msg);
     }
   }
+
+  
+  /**
+   * 获取设备名称列表 以便快速输入设备名称
+   * 
+   */
+  public function getMecheNames() 
+  {
+    return json((new recordModel)->getMecheNames());
+  }
+
 }

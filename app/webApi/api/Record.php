@@ -2,8 +2,8 @@
 /*
  * @Author: your name
  * @Date: 2020-12-07 16:46:26
- * @LastEditTime: 2020-12-29 15:45:22
- * @LastEditors: yu chen
+ * @LastEditTime: 2021-04-13 15:36:33
+ * @LastEditors: Mok.CH
  * @Description: In User Settings Edit
  * @FilePath: \sverp\app\webApi\api\Record.php
  */
@@ -21,7 +21,10 @@ class Record extends BaseController
     {
        return (new recordController)->saveRepair();
     }
- 
+    public function apiRepairDetail()
+    {
+      return (new recordController)->getRepairDetail();
+    }
     public function apiMecheInfo()
     {
        return (new recordController)->getMecheInfo();
@@ -63,6 +66,10 @@ class Record extends BaseController
     {
        return (new recordController)->repairComplete();
     }
-	
+    public function apiGetmecheNames()
+    {
+       
+       return (new recordController)->getMecheNames();
+    }
    
 }
