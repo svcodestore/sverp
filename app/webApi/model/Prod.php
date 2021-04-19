@@ -2,7 +2,7 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-18 14:56:05
- * @LastEditTime: 2021-03-18 14:45:24
+ * @LastEditTime: 2021-04-15 10:27:26
  * @LastEditors: yanbuw1911
  * @Description: 生管部模型
  * @FilePath: /sverp/app/webApi/model/Prod.php
@@ -182,13 +182,13 @@ class Prod
                             potbl.ppi_is_dirty,
                             phstbl.map_ppi_phsid,
                             phstbl.map_ppi_phs,
-                            SUM( phstbl.map_ppi_cost_time ) map_ppi_cost_time,
+                            SUM( phstbl.map_ppi_cost_time ) AS map_ppi_cost_time,
                             phstbl.map_ppi_seq,
                             phstbl.map_ppi_phs_desc,
-                            SUM( phstbl.map_ppi_aheadtime ) map_ppi_aheadtime,
-                            SUM( phstbl.map_ppi_deadtime ) map_ppi_deadtime,
-                            SUM( phstbl.map_ppi_outime ) map_ppi_outime,
-                            SUM( IF( phstbl.map_ppi_ismaster = 1, 0, 1 ) ) map_ppi_isvice,
+                            SUM( phstbl.map_ppi_aheadtime ) AS map_ppi_aheadtime,
+                            SUM( phstbl.map_ppi_deadtime ) AS map_ppi_deadtime,
+                            SUM( phstbl.map_ppi_outime ) AS map_ppi_outime,
+                            SUM( IF( phstbl.map_ppi_ismaster = 1, 0, 1 ) ) AS map_ppi_isvice,
                             phstbl.map_ppi_isdirty 
                         FROM
                             $prodPhasesTbl AS phstbl,
