@@ -2,7 +2,7 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-18 15:00:44
- * @LastEditTime: 2021-03-19 07:51:08
+ * @LastEditTime: 2021-04-15 11:15:20
  * @LastEditors: yanbuw1911
  * @Description: 
  * @FilePath: /sverp/app/webApi/controller/Prod.php
@@ -428,6 +428,7 @@ class Prod
                     'ppi_is_dirty'      => $orderItem['ppi_is_dirty']
                 ];
 
+                // 由于只要上一个工站的完成时间，控制遍历的数组为2个元素
                 if (count($tmpProdOrdersInfo) > 1) {
                     $prodOrdersInfo[] = array_shift($tmpProdOrdersInfo);
                 }
@@ -470,54 +471,63 @@ class Prod
                             $singlePhaseNeed = $splitCount * $costTime;
                             $allPhaseNeed    = $prdTotal * $costTime;
                     }
-                    // 测试
-                    // $singlePhaseNeed = $splitCount * 123;
-                    // $allPhaseNeed    = $prdTotal * 123;
 
                     #是否为第一工序
                     $isFirstPhase    = false;
 
                     // 生产单的第一道工序
                     if (!isset($tmpProdOrdersInfo[$k]['phases'])) {
-                        // 不是生产单列表第一单时，使开始时间为上一生产单第一工序等分生产量的完成时间。辅流程逻辑相同
+                        // 不是生产单列表第一单时，使开始时间为上一生产单第一主工序（有耗时）等分生产量的完成时间。辅流程逻辑相同
                         if ($k !== 0) {
                             $prevPrdOrderPhs = $tmpProdOrdersInfo[$k - 1]['phases'];
-                            $phaseStartAt    = strtotime($prevPrdOrderPhs[0]['ppi_phs_complete']);
+                            foreach ($prevPrdOrderPhs as $key => $value) {
+                                if ($value['map_ppi_cost_time'] > 0 && $value['map_ppi_isvice'] === '0') {
+                                    $phaseStartAt    = strtotime($value['ppi_phs_complete']);
+                                    break;
+                                }
+                            }
                             $isFirstPhase    = true;
                         }
 
-                        // 生产单的第二道工序
+                        // 生产单的第二道工序，假设不是副流程
                     } else if (count($tmpProdOrdersInfo[$k]['phases']) === 1) {
                         // 主辅流程处理
-                        if ($orderItem['map_ppi_isvice'] === '0') {
-                            $phaseStartAt = strtotime(current($tmpProdOrdersInfo[$k]['phases'])['ppi_phs_start']) + $singlePhaseNeed;
-                        } else {
-                            // 辅流程，使开始时间为上一生产单第一工序等分生产量的完成时间
-                            $prevPrdOrderPhs = $tmpProdOrdersInfo[$k - 1]['phases'];
-                            $phaseStartAt    = strtotime($prevPrdOrderPhs[0]['ppi_phs_complete']);
-                            $isFirstPhase    = true;
-                        }
+                        $phaseStartAt = strtotime(current($tmpProdOrdersInfo[$k]['phases'])['ppi_phs_start']) + $singlePhaseNeed;
 
                         // 生产单的之后的工序
                     } else if (next($tmpProdOrdersInfo[$k]['phases'])) {
                         // 主辅流程处理
                         if ($orderItem['map_ppi_isvice'] === '0') {
-                            $phaseStartAt = strtotime(current($tmpProdOrdersInfo[$k]['phases'])['ppi_phs_start']) + $singlePhaseNeed;
-                        } else {
+                            $phs = current($tmpProdOrdersInfo[$k]['phases']);
+                            $phaseStartAt = strtotime($phs['ppi_phs_start']) + $singlePhaseNeed;
+
                             // 辅流程，使开始时间为上一生产单第一工序等分生产量的完成时间
+                        } else {
                             if ($k > 0) {
-                                $prevPrdOrderPhs = $tmpProdOrdersInfo[$k - 1]['phases'];
-                                $phaseStartAt    = strtotime($prevPrdOrderPhs[0]['ppi_phs_complete']);
+                                // 车间上线工站索引
+                                $i = -1;
+                                foreach ($v['phases'] as $idx => $item) {
+                                    if ($item['map_ppi_phsid'] === '005') {
+                                        $i = $idx;
+                                        break;
+                                    }
+                                }
+                                // 如果前面工站存在车间上线，则开始时间以车间上线前一个工站计算
+                                if ($i > 0) {
+                                    $beforeWorkshopOnline = $v['phases'][$i - 1];
+                                    if ($beforeWorkshopOnline['map_ppi_cost_time'] == 0) {
+                                        $phaseStartAt    = strtotime($beforeWorkshopOnline['ppi_phs_complete']);
+                                    } else {
+                                        $phaseStartAt    = strtotime($beforeWorkshopOnline['ppi_phs_start']) + $singlePhaseNeed;
+                                    }
+                                } else {
+                                    $phaseStartAt    = strtotime($tmpProdOrdersInfo[$k - 1]['phases'][0]['ppi_phs_complete']);
+                                }
                             } else {
                                 $phaseStartAt    = $schStartAt;
                             }
-                            $isFirstPhase    = true;
                         }
                     }
-
-                    // if ($orderItem['ppi_customer_no'] == 'JSTW' && $orderItem['ppi_customer_pono'] == '85926' && $orderItem['ppi_prd_item'] == 'B32180' && $orderItem['map_ppi_phsid'] === '023') {
-                    //     dd($orderItem);
-                    // }
 
                     // 如果有停滞时间则算入排程时间
                     if ($orderItem['map_ppi_deadtime'] > 0) {
@@ -525,7 +535,6 @@ class Prod
                     }
 
                     // 处理工序开始时间。加入工作日上下班休息时间
-                    // printf("%s\n", date(self::WORK_DATETIME_FORMAT, $phaseStartAt));
                     $phaseActualStartAt
                         = $this->handlePhaseStartTime(
                             $phaseStartAt,
@@ -533,7 +542,7 @@ class Prod
                             $isFirstPhase,
                             $arrangeDays
                         );
-                    // printf("%s\n-------------\n", date(self::WORK_DATETIME_FORMAT, $phaseActualStartAt));
+
                     // 加入休息日，排到休息日则向后算入一天
                     foreach ($arrangeDays as $v) {
                         if (
@@ -595,7 +604,34 @@ class Prod
                     if ($orderItem['map_ppi_isvice'] === '0') {
                         $tmpProdOrdersInfo[$k]['phases'][] = $append;
                     } else {
-                        array_unshift($tmpProdOrdersInfo[$k]['phases'], $append);
+                        // 车间上线工站索引，副流程都排在车间上线之前
+                        $workshopOnline = false;
+                        $tmp = [];
+                        // 获取副流程移动的步数
+                        $steps = 0;
+                        foreach ($tmpProdOrdersInfo[$k]['phases'] as $idx => $value) {
+                            if ($value['map_ppi_phsid'] === current($tmpProdOrdersInfo[$k]['phases'])['map_ppi_phsid']) {
+                                $steps = $idx;
+                            }
+                            if ($value['map_ppi_phsid'] === '005') {
+                                $steps = abs($steps - $idx) - 2;
+                                $workshopOnline = true;
+                                $tmp[] = $append;
+                            }
+                            $tmp[] = $value;
+                        }
+                        if ($workshopOnline) {
+                            // 这里变更了内部的 prev, next 指针
+                            $tmpProdOrdersInfo[$k]['phases'] = $tmp;
+                            // 还原指针位置
+                            while ($steps > 0) {
+                                $steps--;
+                                next($tmpProdOrdersInfo[$k]['phases']);
+                            }
+                            unset($tmp);
+                        } else {
+                            array_unshift($tmpProdOrdersInfo[$k]['phases'], $append);
+                        }
                     }
                 }
             }
@@ -610,11 +646,14 @@ class Prod
             foreach ($prodOrdersInfo as $v) {
                 foreach ($v['phases'] as $phsInfo) {
                     $schdRecords[] = [
-                        'ppa_prdo_id' => $v['prdoid'],
-                        'ppa_phs_id' => $phsInfo['map_ppi_phsid'],
-                        'ppa_phs' => $phsInfo['map_ppi_phs'],
-                        'ppa_phs_start' => $phsInfo['ppi_phs_start'],
-                        'ppa_phs_complete' => $phsInfo['ppi_phs_complete']
+                        'ppa_prdo_id'           => $v['prdoid'],
+                        'ppa_phs_id'            => $phsInfo['map_ppi_phsid'],
+                        'ppa_phs'               => $phsInfo['map_ppi_phs'],
+                        'ppa_phs_start'         => $phsInfo['ppi_phs_start'],
+                        'ppa_phs_complete'      => $phsInfo['ppi_phs_complete'],
+                        'ppa_prdo_customerno'   => $v['ppi_customer_no'],
+                        'ppa_prdo_customerpono' => $v['ppi_customer_pono'],
+                        'ppa_prdo_item'         => $v['ppi_prd_item'],
                     ];
                 }
             }
@@ -622,7 +661,7 @@ class Prod
         }
         $rtn['result'] = $result;
         if ($result) {
-            Cache::store('redis')->set($cacheKey, serialize($prodOrdersInfo));
+            // Cache::store('redis')->set($cacheKey, serialize($prodOrdersInfo));
             $rtn['data']   = $prodOrdersInfo;
         }
 
