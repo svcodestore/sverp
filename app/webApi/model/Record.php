@@ -2,7 +2,7 @@
 /*
  * @Author: yu chen
  * @Date: 2020-12-07 16:16:43
- * @LastEditTime: 2021-04-20 14:58:16
+ * @LastEditTime: 2021-04-21 14:24:47
  * @LastEditors: Mok.CH
  * @Description: In User Settings Edit
  * @FilePath: \sverp\app\webApi\model\Record.php
@@ -238,7 +238,7 @@ class Record
     $res = Db::name($this->repair_record)->where('id', $where)->update($rows);
     return $res !== false;
   }
-   public function delFitting(array $ids): bool
+  public function delFitting(array $ids): bool
   {
     $res = Db::name($this->tmplib_fitting)->delete($ids);
     return $res !== false;
@@ -270,7 +270,7 @@ class Record
     $res = Db::name($this->tmplib_fitting)->where('id', $where)->update($row);
     return $res !== false;
   }
-   public function saveFitting(array $opt): bool
+  public function saveFitting(array $opt): bool
   {
     Db::startTrans();
     $flag = true;
