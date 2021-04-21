@@ -2,7 +2,7 @@
 /*
  * @Author: yu chen
  * @Date: 2020-12-07 16:16:43
- * @LastEditTime: 2021-04-15 09:48:32
+ * @LastEditTime: 2021-04-20 14:58:16
  * @LastEditors: Mok.CH
  * @Description: In User Settings Edit
  * @FilePath: \sverp\app\webApi\model\Record.php
@@ -49,7 +49,10 @@ class Record
     return $res !== false;
   }
   public function get_record_detail(int $id): array{
-    return Db::name($this->repair_record)->where('id', $id)->select()->toArray();
+    return Db::table($this->repair_record)->alias('rr')
+              ->field('*, rr.id as id, m.id as mache_id')
+              ->leftjoin($this->meche_info.' m', 'rr.mechenum = m.mache_num')
+              ->where('rr.id', $id)->find();
   }
   public function update_record(string $where, array $row): bool
   {

@@ -2,7 +2,7 @@
 /*
  * @Author: yu chen
  * @Date: 2020-12-07 16:23:05
- * @LastEditTime: 2021-04-19 08:52:23
+ * @LastEditTime: 2021-04-20 14:53:05
  * @LastEditors: Mok.CH
  * @Description: In User Settings Edit
  * @FilePath: \sverp\app\webApi\controller\Record.php
@@ -84,6 +84,10 @@ class Record
     if (request()->param('mechenum')) {
       $where[] = ['mechenum', '=', request()->param('mechenum')];
     }
+    // 新增：报修人查询
+    if (request()->param('reporterConId')) {
+      $where[] = ['reporter_con_id', '=', request()->param('reporterConId')];
+    }
     $cnd = $where;
     $result = array();
     if (request()->param('error')) {
@@ -113,12 +117,16 @@ class Record
   public function getRepairDetail () {
     $data['code'] = 1;
     $data['msg'] = 'Object Not Found';
-
-    $id = request()->param('id');
-    
+    $id = request()->param('recordId');
     $record_info = (new recordModel)->get_record_detail($id);
+    if ($record_info) {
+      $record_info['alarmtime'] = date('Y-m-d H:i:s', $record_info['alarmtime']);
+      $record_info['reachtime'] = date('Y-m-d H:i:s', intval($record_info['reachtime']));
+      $record_info['repairtime'] = date('Y-m-d H:i:s', $record_info['repairtime']);
+      $record_info['create_time'] = date('Y-m-d H:i:s', $record_info['create_time']);
+    }
     $data['data'] = $record_info;
-
+    
     if ($record_info) {
       $data['code'] = 0;
       $data['msg'] = 'success';
@@ -313,7 +321,6 @@ class Record
   public function sendMsg()
   {
     $param = request()->param('param');
-    Log::debug($param);
     if (!empty($param['row']['line_num']) && !empty($param['row']['produc_num'] && !empty($param['row']['mache_num']) && !empty($param['row']['mache_name']))) {
       $content['part'] = 'TPM';
       $content['number'] = $param['row']['line_num'];
@@ -329,7 +336,8 @@ class Record
             'alarmtime' => time(),
             'repairAttr' => $param['cate'] ? $param['cate'] : '',
             'repairstatus' => 'false',
-            'dell_repair' => 0
+            'dell_repair' => 0,
+            'reporter_con_id' => isset($param['reporterConId'])?$param['reporterConId']:''
           ];
           $record = new recordModel;
           $id = $record->addRecord($data);
@@ -349,7 +357,7 @@ class Record
         'repair_img' => $img ? $img : '',
       ];
       $content = ['department' => $param['noticeDepartment'], 'meche' => $param['mecheName'], 'cause' => $param['cause'], 'time' => date('Y-m-d H:i:s', time())];
-      // $res = smsSend($param['phone'], '文迪软件', 'SMS_210075241', $content); //发送短信
+      $res = smsSend($param['phone'], '文迪软件', 'SMS_210075241', $content); //发送短信
       $res['Code'] = 'OK';
       if ($res['Code'] === 'OK') {
         $record = new recordModel;
