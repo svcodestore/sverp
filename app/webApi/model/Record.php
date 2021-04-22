@@ -2,7 +2,7 @@
 /*
  * @Author: yu chen
  * @Date: 2020-12-07 16:16:43
- * @LastEditTime: 2021-04-22 08:40:00
+ * @LastEditTime: 2021-04-22 13:32:30
  * @LastEditors: Mok.CH
  * @Description: In User Settings Edit
  * @FilePath: \sverp\app\webApi\model\Record.php
@@ -19,6 +19,7 @@ class Record
   protected $repair_log = starvc_homedb . '.prodlib_repair_log';
   protected $repair_notify_staff = starvc_homedb . '.prodlib_repair_notify_staff';
   protected $tmplib_fitting = starvc_homedb. '.tmplib_fitting';
+  protected $repair_fitting_used = starvc_homedb . '.prodlib_repair_fitting_used';
   public function repair_record($field, $where, $page, $limit)
   {
     $data = Db::table($this->repair_record)
@@ -314,5 +315,25 @@ class Record
   public function getFitting($field, $where, $page, $limit)
   {
     return Db::table($this->tmplib_fitting)->field($field)->where($where)->limit($page, $limit)->select()->toArray();
+  }
+
+  /**
+   * 添加配件使用记录
+   * @param $record_id 维修记录id
+   * @param $fitting 使用的配件
+   * @param $count 使用数量
+   */
+  public function addFittingUsed(int $record_id, array $fitting, int $count)
+  {
+    $data = [
+      'record_id' => $record_id,
+      'fitting_id' => $fitting['id'],
+      'count' => $count,
+      'price' => $fitting['fitting_price'],
+      'fitting_name' => $fitting['fitting_name'],
+      'add_time' => time()
+    ];
+    return Db::table($this->repair_fitting_used)
+            ->insertGetId($data);
   }
 }

@@ -2,7 +2,7 @@
 /*
  * @Author: yu chen
  * @Date: 2020-12-07 16:23:05
- * @LastEditTime: 2021-04-22 09:34:49
+ * @LastEditTime: 2021-04-22 13:31:14
  * @LastEditors: Mok.CH
  * @Description: In User Settings Edit
  * @FilePath: \sverp\app\webApi\controller\Record.php
@@ -525,7 +525,7 @@ class Record
             $result = $record->getFitting($field, $where, $page = 0, $limit = 10000);
           }
           if (!empty($result) && !empty($result[0]['fitting_num']) && ($result[0]['fitting_num'] - $v) >= 0) {
-            // $data['fitting_num'] = $result[0]['fitting_num'] - $v;
+            $data['fitting_num'] = $result[0]['fitting_num'] - $v;
             $data['fitting_consume_num'] = $result[0]['fitting_consume_num'] + $v;
             $data['fitting_msg_status'] = intval($result[0]['fitting_msg_status']); //由于下一次循环没有定义该值所以需要默认数据库的值
             if ($data['fitting_num'] < $result[0]['fitting_msg_number'] && $result[0]['fitting_msg_status'] === 1) {
@@ -537,6 +537,8 @@ class Record
           } else {
             $msg['msg'] = '配件不足';
           }
+          // 添加配件使用记录
+          $record->addFittingUsed($id, $result[0], $v);
         }
         $fitting_name = mb_substr($fitting_name, 0, -1, "UTF-8");
         $fitting_number = mb_substr($fitting_number, 0, -1, "UTF-8");
