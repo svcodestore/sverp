@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2020-12-07 16:46:26
- * @LastEditTime: 2021-04-13 15:36:33
+ * @LastEditTime: 2021-04-22 09:00:42
  * @LastEditors: Mok.CH
  * @Description: In User Settings Edit
  * @FilePath: \sverp\app\webApi\api\Record.php
@@ -70,6 +70,10 @@ class Record extends BaseController
     {
        
        return (new recordController)->getMecheNames();
+    }
+    public function apiGetRepairLogs()
+    {
+       return (new recordController)->getrepairLogs();
     }
    
 }

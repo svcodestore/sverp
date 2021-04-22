@@ -2,7 +2,7 @@
 /*
  * @Author: yu chen
  * @Date: 2020-12-07 16:16:43
- * @LastEditTime: 2021-04-21 14:24:47
+ * @LastEditTime: 2021-04-22 08:40:00
  * @LastEditors: Mok.CH
  * @Description: In User Settings Edit
  * @FilePath: \sverp\app\webApi\model\Record.php
@@ -174,6 +174,20 @@ class Record
   public function repairLogAdd($save)
   {
     return Db::table($this->repair_log)->insert($save);
+  }
+  /**
+   * 获取其它部门报修记录
+   * @param $where
+   * @param $page
+   * @param $limit
+   * @return array
+   */
+  public function getRepairLogs($where, $page, $limit): array
+  {
+    $data = DB::table($this->repair_log)
+              ->where($where)->limit($page, $limit)
+              ->select()->toArray();
+    return $data;
   }
   public function getNotify($field, $where, $page, $limit)
   {

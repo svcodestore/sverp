@@ -2,7 +2,7 @@
 /*
  * @Author: yu chen
  * @Date: 2020-12-07 16:23:05
- * @LastEditTime: 2021-04-21 14:23:03
+ * @LastEditTime: 2021-04-22 09:34:49
  * @LastEditors: Mok.CH
  * @Description: In User Settings Edit
  * @FilePath: \sverp\app\webApi\controller\Record.php
@@ -574,6 +574,27 @@ class Record
   public function getMecheNames() 
   {
     return json((new recordModel)->getMecheNames());
+  }
+  
+  /**
+   * 获取其它部门的报修记录 log 表
+   */
+  public function getrepairLogs()
+  {
+    $param = request()->param();
+    $page = request()->param('page', 0);
+    $limit = request()->param('limit', 1000);
+    $where = [];
+    if (isset($param['reporterConId'])) {
+      $where['reporter_con_id'] = $param['reporterConId'];
+    }
+    $model = new recordModel();
+    $data = $model->getRepairLogs($where, $page, $limit);
+    foreach ($data as $k =>$v) {
+      $data[$k]['repair_create_time'] = date('Y-m-d H:i:s', $v['repair_create_time']);
+      $data[$k]['repair_done_time'] = date('Y-m-d H:i:s', $v['repair_done_time']);
+    }
+    return json($data);
   }
 
 }
