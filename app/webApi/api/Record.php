@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2020-12-07 16:46:26
- * @LastEditTime: 2021-04-22 09:00:42
+ * @LastEditTime: 2021-04-22 16:24:40
  * @LastEditors: Mok.CH
  * @Description: In User Settings Edit
  * @FilePath: \sverp\app\webApi\api\Record.php
@@ -74,6 +74,10 @@ class Record extends BaseController
     public function apiGetRepairLogs()
     {
        return (new recordController)->getrepairLogs();
+    }
+    public function apiGetRecordFettingUsed()
+    {
+       return (new recordController)->getRecordFittingUsed();
     }
    
 }

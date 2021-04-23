@@ -2,7 +2,7 @@
 /*
  * @Author: yu chen
  * @Date: 2020-12-07 16:23:05
- * @LastEditTime: 2021-04-22 13:31:14
+ * @LastEditTime: 2021-04-22 16:24:12
  * @LastEditors: Mok.CH
  * @Description: In User Settings Edit
  * @FilePath: \sverp\app\webApi\controller\Record.php
@@ -599,4 +599,16 @@ class Record
     return json($data);
   }
 
+  public function getRecordFittingUsed()
+  {
+    $record_id = request()->param('recordId');
+    if (!$record_id) {
+      return json(['code'=>1, 'messages'=>'record id requested!']);
+    }
+    $data = (new recordModel)->getRecordFittingUsed($record_id);
+    return json([
+      'code' => 0,
+      'data' => $data
+    ]);
+  }
 }

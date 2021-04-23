@@ -2,7 +2,7 @@
 /*
  * @Author: yu chen
  * @Date: 2020-12-07 16:16:43
- * @LastEditTime: 2021-04-22 13:32:30
+ * @LastEditTime: 2021-04-22 16:19:45
  * @LastEditors: Mok.CH
  * @Description: In User Settings Edit
  * @FilePath: \sverp\app\webApi\model\Record.php
@@ -335,5 +335,14 @@ class Record
     ];
     return Db::table($this->repair_fitting_used)
             ->insertGetId($data);
+  }
+  /**
+   * 根据维修记录id获取配件使用
+   * @param $record_id 维修记录id
+   * @return array|null
+   */
+  public function getRecordFittingUsed(int $record_id)
+  {
+    return Db::table($this->repair_fitting_used)->where('record_id', $record_id)->select()->toArray();
   }
 }
