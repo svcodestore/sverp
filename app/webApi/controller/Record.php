@@ -2,7 +2,7 @@
 /*
  * @Author: yu chen
  * @Date: 2020-12-07 16:23:05
- * @LastEditTime: 2021-04-22 16:24:12
+ * @LastEditTime: 2021-04-23 15:37:08
  * @LastEditors: Mok.CH
  * @Description: In User Settings Edit
  * @FilePath: \sverp\app\webApi\controller\Record.php
@@ -322,12 +322,14 @@ class Record
   {
     $param = request()->param('param');
     if (!empty($param['row']['line_num']) && !empty($param['row']['produc_num'] && !empty($param['row']['mache_num']) && !empty($param['row']['mache_name']))) {
+      // TPM报修
       $content['part'] = 'TPM';
       $content['number'] = $param['row']['line_num'];
       $content['line_num'] = $param['row']['produc_num'];
       $content['meche_num'] = $param['row']['mache_num'];
       $content['meche_name'] = $param['row']['mache_name'] . $param['cause']; //机器名和初步原因
       $phone = implode(',', $param['arr']);
+      Log::debug($content);
       if ($phone && $content['number'] && $content['line_num'] && $content['meche_num'] && $content['meche_name']) {
         $res = smsSend($phone, '文迪软件', 'SMS_207970725', $content);
         if ($res['Code'] === 'OK') {
@@ -346,6 +348,7 @@ class Record
         }
       }
     } elseif (!empty($param['cause']) && !empty($param['mecheName']) && !empty($param['noticeName'][0])) {
+      // 其它部门维修
       $param['phone'] = implode(',', $param['noticeName']);
       $img = cookie('url');
       $data = [
@@ -610,5 +613,72 @@ class Record
       'code' => 0,
       'data' => $data
     ]);
+  }
+  
+  /**
+   * 快速报修接口
+   * TPM、其它部门维修将统一使用record表记录
+   */
+  public function quickReport()
+  {
+    $params = request()->param();
+    $model = new recordModel();
+    $return['code'] = 1;
+    $return['msg'] = '发送失败';
+    
+    if (isset($params['macheNum']) && !empty($params['macheNum'])) {
+      $mache_info = $model->getMecheInfo('*', ['mache_num'=>$params['macheNum']], 0, 1);
+      if ($mache_info) {
+        $mache_info = $mache_info[0];
+      } else {
+        $mache_info = false;
+      }
+    } 
+    
+    if (empty($mache_info)) {
+      $mache_info['mache_name'] = request()->param('macheName', '');
+      $mache_info['mache_num'] = request()->param('macheNum', '');
+      $mache_info['line_num'] = request()->param('lineNum', '');
+      $mache_info['produc_num'] = request()->param('producNum', '');
+    }
+
+    $data = [
+      'mechenum' => $params['macheNum'],
+      'alarmtime' => time(),
+      'repairAttr' => $params['cate'] ? $params['cate'] : '',
+      'repairstatus' => 'false',
+      'dell_repair' => 0,
+      'repaircontents' => request()->param('cause', ''),
+      'reporter_con_id' => isset($params['reporterConId'])?$params['reporterConId']:'',
+      'reporter_name' => isset($params['reporterName'])?$params['reporterName']:''
+    ];
+    if ($model->addRecord($data)) {
+      $content['part'] =  request()->param('noticeDepartment', 'TPM');
+      $content['number'] = $mache_info['line_num'];
+      $content['line_num'] = $mache_info['produc_num'];
+      $content['meche_num'] = $mache_info['mache_num'];
+      $content['meche_name'] =($mache_info?$mache_info['mache_name']:'') .' '. $params['cause']; //机器名和初步原因
+      $content['department'] = $content['part'];
+      $content['meche'] = $mache_info['mache_name'];
+      $content['cause'] = $params['cause'];
+      $content['time'] = date('Y-m-d H:i:s');
+      
+      $phone = implode(',', $params['arr']);
+      // 根据内容使用模板
+      if (empty($content['line_num']) && empty($content['number'])) {
+        $res = smsSend($phone, '文迪软件', 'SMS_210075241', $content); 
+      } else {
+        $res = smsSend($phone, '文迪软件', 'SMS_207970725', $content);
+      }
+      
+      if ($res['Code'] !== 'OK') {
+        $return['msg']  = '已添加到系统, 但未能发送短信通知';
+      } else {
+        $return['code'] = 0;
+        $return['msg']  = '发送成功';
+      }
+    }
+    
+    return json($return);
   }
 }
