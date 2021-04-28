@@ -2,7 +2,7 @@
 /*
  * @Author: yu chen
  * @Date: 2020-12-07 16:23:05
- * @LastEditTime: 2021-04-27 08:58:59
+ * @LastEditTime: 2021-04-28 08:51:20
  * @LastEditors: Mok.CH
  * @Description: In User Settings Edit
  * @FilePath: \sverp\app\webApi\controller\Record.php
@@ -190,7 +190,7 @@ class Record
     //   $data['msg'] = 'error';
     // } else {
     $record = new recordModel;
-    $field = 'id,line_num,produc_num,mache_num,mache_name,keeper,status,create_time';
+    $field = '*';
     $where[] = ['status', '>', '0'];
     if (request()->param('line_num')) {
       $where[] = ['line_num', '=', request()->param('line_num')];
@@ -532,7 +532,6 @@ class Record
             if ($result[0]['is_unlimit'] != 1){
               // 实物配件，库存扣量
               $data['fitting_num'] = $result[0]['fitting_num'] - $v;
-              $data['fitting_consume_num'] = $result[0]['fitting_consume_num'] + $v;
               $data['fitting_msg_status'] = intval($result[0]['fitting_msg_status']); //由于下一次循环没有定义该值所以需要默认数据库的值
               if ($data['fitting_num'] < $result[0]['fitting_msg_number'] && $result[0]['fitting_msg_status'] === 1) {
                 $data['fitting_msg_status'] = -1;
@@ -540,9 +539,9 @@ class Record
                 $fitting_number .= $data['fitting_num'] . '、';
               }
             } else {
-              $data['fitting_consume_num'] = $result[0]['fitting_consume_num'] + $v;
               $donSendMsg = true;
             }
+            $data['fitting_consume_num'] = $result[0]['fitting_consume_num'] + $v; // 记录配件总使用量
             $record->updateFitting($k, $data);  
             
           } else {
