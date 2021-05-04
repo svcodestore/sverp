@@ -2,7 +2,7 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-18 15:00:44
- * @LastEditTime: 2021-04-15 11:15:20
+ * @LastEditTime: 2021-05-04 09:17:37
  * @LastEditors: yanbuw1911
  * @Description: 
  * @FilePath: /sverp/app/webApi/controller/Prod.php
@@ -659,6 +659,7 @@ class Prod
             }
             $result = $m->insertSchdRecords($schdRecords);
         }
+        $result = $result && $m->syncPlanindate();
         $rtn['result'] = $result;
         if ($result) {
             // Cache::store('redis')->set($cacheKey, serialize($prodOrdersInfo));
