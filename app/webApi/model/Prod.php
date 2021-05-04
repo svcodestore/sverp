@@ -2,7 +2,7 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-18 14:56:05
- * @LastEditTime: 2021-05-04 10:04:02
+ * @LastEditTime: 2021-05-04 10:05:52
  * @LastEditors: yanbuw1911
  * @Description: 生管部模型
  * @FilePath: /sverp/app/webApi/model/Prod.php
@@ -112,11 +112,10 @@ class Prod
         $flag = true;
         // 这里应开启事务
         foreach ($dates as $date) {
-            $sql = "UPDATE gbplan SET planindate = {$date['planindate']} WHERE 
-                kh_no = {$date['ppi_customer_no']} AND 
-                khpono = {$date['ppi_customer_pono']} AND 
-                sp_no = {$date['ppi_prd_item']}";
-            dd($sql);
+            $sql = "UPDATE gbplan SET planindate = '{$date['planindate']}' WHERE 
+                kh_no = '{$date['ppi_customer_no']}' AND 
+                khpono = '{$date['ppi_customer_pono']}' AND 
+                sp_no = '{$date['ppi_prd_item']}'";
             $flag = $flag !== false && $dbh->query(
                 $sql
             );
