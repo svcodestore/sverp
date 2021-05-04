@@ -1,8 +1,8 @@
 <?php
 /*
  * @Date: 2020-12-28 14:21:43
- * @LastEditors: yu chen
- * @LastEditTime: 2020-12-29 14:25:17
+ * @LastEditors: Mok.CH
+ * @LastEditTime: 2021-04-20 15:31:22
  * @FilePath: \sverp\app\common.php
  */
 // 应用公共文件
@@ -43,6 +43,10 @@ function authorizedToken($data)
 }
 function smsSend($phone, $sign, $template, $content = array())
 {
+  // debug: 
+  if (env('APP_DEBUG_SEND_SMS') === false) {
+    return ['Code' => 'OK'];
+  }
   AlibabaCloud::accessKeyClient('LTAI4GKxRNfpcn52LPF7BXHc', '89DyCBjPV8kf1OeSU5O9kjFUfMxd7J')
     ->regionId('cn-hangzhou')
     ->asDefaultClient();
