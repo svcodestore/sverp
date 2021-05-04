@@ -2,7 +2,7 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-18 14:56:05
- * @LastEditTime: 2021-05-04 09:43:00
+ * @LastEditTime: 2021-05-04 09:44:06
  * @LastEditors: yanbuw1911
  * @Description: 生管部模型
  * @FilePath: /sverp/app/webApi/model/Prod.php
@@ -79,7 +79,7 @@ class Prod
      * @description: 同步计划交期
      * @return bool
      */
-    public function syncPlanindate()
+    public function syncPlanindate(): bool
     {
         $sql = "SELECT *, MAX(ppa_phs_complete) AS planindate
                     FROM (SELECT a.ppa_prdo_id,
@@ -117,7 +117,7 @@ class Prod
                 khpono = {$date['ppi_customer_pono']} AND 
                 sp_no = {$date['ppi_prd_item']}";
 
-            $flag = $flag && $dbh->exec(
+            $flag = $flag !== false && $dbh->exec(
                 $sql
             );
         }
