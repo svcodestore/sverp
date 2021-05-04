@@ -2,7 +2,7 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-18 14:56:05
- * @LastEditTime: 2021-05-04 10:01:46
+ * @LastEditTime: 2021-05-04 10:04:02
  * @LastEditors: yanbuw1911
  * @Description: 生管部模型
  * @FilePath: /sverp/app/webApi/model/Prod.php
@@ -116,7 +116,7 @@ class Prod
                 kh_no = {$date['ppi_customer_no']} AND 
                 khpono = {$date['ppi_customer_pono']} AND 
                 sp_no = {$date['ppi_prd_item']}";
-
+            dd($sql);
             $flag = $flag !== false && $dbh->query(
                 $sql
             );
