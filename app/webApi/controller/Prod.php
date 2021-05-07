@@ -2,7 +2,7 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-18 15:00:44
- * @LastEditTime: 2021-05-04 09:17:37
+ * @LastEditTime: 2021-05-06 14:21:04
  * @LastEditors: yanbuw1911
  * @Description: 
  * @FilePath: /sverp/app/webApi/controller/Prod.php
@@ -662,7 +662,7 @@ class Prod
         $result = $result && $m->syncPlanindate();
         $rtn['result'] = $result;
         if ($result) {
-            // Cache::store('redis')->set($cacheKey, serialize($prodOrdersInfo));
+            Cache::store('redis')->set($cacheKey, serialize($prodOrdersInfo));
             $rtn['data']   = $prodOrdersInfo;
         }
 

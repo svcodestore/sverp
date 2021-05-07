@@ -4,7 +4,7 @@ declare(strict_types=1);
 /*
 * @Author: yanbuw1911
 * @Date: 2021-01-07 14:18:07
- * @LastEditTime: 2021-04-16 13:23:25
+ * @LastEditTime: 2021-05-07 08:34:49
  * @LastEditors: yanbuw1911
 * @Description:
  * @FilePath: /sverp/app/webApi/api/Hrd.php
@@ -85,5 +85,15 @@ class Hrd extends BaseController
     public function materialLogSoftDel()
     {
         return (new ControllerHrd())->materialLogSoftDel();
+    }
+
+    public function updateKpiInfoWorkers()
+    {
+        return (new ControllerHrd())->updateKpiInfoWorkers();
+    }
+
+    public function getKpiInfoWorkers()
+    {
+        return (new ControllerHrd())->getKpiInfoWorkers();
     }
 }
