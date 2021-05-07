@@ -2,7 +2,7 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-18 15:00:44
- * @LastEditTime: 2021-05-06 14:21:04
+ * @LastEditTime: 2021-05-07 11:00:32
  * @LastEditors: yanbuw1911
  * @Description: 
  * @FilePath: /sverp/app/webApi/controller/Prod.php
@@ -505,24 +505,7 @@ class Prod
                         } else {
                             if ($k > 0) {
                                 // 车间上线工站索引
-                                $i = -1;
-                                foreach ($v['phases'] as $idx => $item) {
-                                    if ($item['map_ppi_phsid'] === '005') {
-                                        $i = $idx;
-                                        break;
-                                    }
-                                }
-                                // 如果前面工站存在车间上线，则开始时间以车间上线前一个工站计算
-                                if ($i > 0) {
-                                    $beforeWorkshopOnline = $v['phases'][$i - 1];
-                                    if ($beforeWorkshopOnline['map_ppi_cost_time'] == 0) {
-                                        $phaseStartAt    = strtotime($beforeWorkshopOnline['ppi_phs_complete']);
-                                    } else {
-                                        $phaseStartAt    = strtotime($beforeWorkshopOnline['ppi_phs_start']) + $singlePhaseNeed;
-                                    }
-                                } else {
-                                    $phaseStartAt    = strtotime($tmpProdOrdersInfo[$k - 1]['phases'][0]['ppi_phs_complete']);
-                                }
+                                $phaseStartAt    = strtotime($tmpProdOrdersInfo[$k - 1]['phases'][0]['ppi_phs_complete']);
                             } else {
                                 $phaseStartAt    = $schStartAt;
                             }
