@@ -2,10 +2,10 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-04 09:00:03
- * @LastEditTime: 2020-12-18 11:35:42
- * @LastEditors: yanbuw1911
+ * @LastEditTime: 2021-05-08 15:21:46
+ * @LastEditors: Mok.CH
  * @Description: 
- * @FilePath: \backend\app\webApi\controller\User.php
+ * @FilePath: \sverp\app\webApi\controller\User.php
  */
 
 namespace app\webApi\controller;
@@ -116,5 +116,13 @@ class User
         $rtn['result'] = (new ModelUser())->handleUserGroupOpt($input);
 
         return json($rtn);
+    }
+
+    public function getUsersByGroupCode()
+    {
+        $code = request()->param('code', null);
+        if (empty($code)) return json(['code'=>1, 'msg'=>'param code required!']);
+        $data = (new ModelUser())->getUsersByGroupCode($code);
+        return json(['data'=>$data]);
     }
 }

@@ -2,10 +2,10 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-04 08:56:43
- * @LastEditTime: 2020-12-18 11:35:55
- * @LastEditors: yanbuw1911
+ * @LastEditTime: 2021-05-08 15:22:52
+ * @LastEditors: Mok.CH
  * @Description: 
- * @FilePath: \backend\app\webApi\api\User.php
+ * @FilePath: \sverp\app\webApi\api\User.php
  */
 
 namespace app\webApi\api;
@@ -66,5 +66,10 @@ class User extends BaseController
     public function saveUserGroupOpt()
     {
         return $this->controller->saveUserGroupOpt();
+    }
+
+    public function getUsersByGroupCode()
+    {
+        return $this->controller->getUsersByGroupCode();
     }
 }

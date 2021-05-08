@@ -408,4 +408,32 @@ class User
     {
         return Common::handleOpt(self::DBNAME . self::USRDEPTMAPTBL, $opt);
     }
+
+    /**
+     * 根据权限分组代号，获取用户基本信息
+     * @param string $code
+     * @return array
+     */
+    public function getUsersByGroupCode(string $code)
+    {   
+        $uh_table = self::DBNAME . self::USRTBL;
+        $ud_table = self::DBNAME . self::USRDEPTMAPTBL;
+        $gd_table = self::DBNAME . self::GROUPTBL;
+        $sql = "
+        SELECT 
+            * 
+        FROM 
+            {$uh_table}
+        WHERE id IN 
+        (
+            SELECT 
+                sud_uid 
+            FROM 
+                {$ud_table}
+            WHERE 
+                sud_did = (SELECT id FROM {$gd_table} WHERE sgd_code = ?)
+        )";
+
+        return Db::query($sql, [$code]);
+    }
 }
