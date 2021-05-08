@@ -1,4 +1,12 @@
 <?php
+/*
+ * @Author: yanbuw1911
+ * @Date: 2021-03-11 15:46:04
+ * @LastEditors: yanbuw1911
+ * @LastEditTime: 2021-04-28 15:23:55
+ * @Description: Do not edit
+ * @FilePath: /sverp/config/cache.php
+ */
 // +----------------------------------------------------------------------
 // | 缓存设置
 // +----------------------------------------------------------------------
@@ -27,8 +35,8 @@ return [
         'redis' => [
             // 驱动方式
             'type'       => 'redis',
-            'host'       => '127.0.0.1',
-            'password'   => 'startRedis'
+            'host'       => env('cache.redis_host', '127.0.0.1'),
+            'password'   => env('cache.redis_password', 'startRedis')
         ],
     ],
 ];

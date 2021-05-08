@@ -4,7 +4,7 @@ declare(strict_types=1);
 /*
 * @Author: yanbuw1911
 * @Date: 2021-01-07 14:15:16
- * @LastEditTime: 2021-04-16 13:37:45
+ * @LastEditTime: 2021-05-07 09:11:05
  * @LastEditors: yanbuw1911
 * @Description:
  * @FilePath: /sverp/app/webApi/controller/Hrd.php
@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace app\webApi\controller;
 
 use app\webApi\model\Hrd as ModelHrd;
+use think\facade\Cache;
 
 class Hrd
 {
@@ -135,5 +136,32 @@ class Hrd
         $rtn['result'] = (new ModelHrd())->materialLogSoftDel($id, $materialId, $oprtQty, $usrid);
 
         return json($rtn);
+    }
+
+    public function updateKpiInfoWorkers()
+    {
+        $KpiInfoWorkers = input();
+        $redis = phpredis();
+        $cacheKey = 'KpiInfoWorkers';
+        $currDate = date('Y-m-d H:i:s', time());
+        $cacheData = serialize([$currDate => $KpiInfoWorkers]);
+
+        $result = $redis->lpush($cacheKey, $cacheData) > 0 ?? false;
+        return json(['result' => $result]);
+    }
+
+    public function getKpiInfoWorkers()
+    {
+        $redis = phpredis();
+        $cacheKey = 'KpiInfoWorkers';
+        $list = $redis->lrange($cacheKey, 0, 1);
+
+        $data = [];
+        if (count($list) > 0) {
+            $lastKpiInfoWorkers = unserialize($list[0]);
+            $data[array_keys($lastKpiInfoWorkers)[0]] = array_values($lastKpiInfoWorkers)[0];
+        }
+
+        return json($data);
     }
 }

@@ -2,7 +2,7 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-18 14:56:05
- * @LastEditTime: 2021-04-15 10:27:26
+ * @LastEditTime: 2021-05-04 10:05:52
  * @LastEditors: yanbuw1911
  * @Description: 生管部模型
  * @FilePath: /sverp/app/webApi/model/Prod.php
@@ -72,6 +72,55 @@ class Prod
         $res = Db::table($t)->whereRaw($cond)->select()->toArray();
 
         return $res;
+    }
+
+
+    /**
+     * @description: 同步计划交期
+     * @return bool
+     */
+    public function syncPlanindate(): bool
+    {
+        $sql = "SELECT *, MAX(ppa_phs_complete) AS planindate
+                    FROM (SELECT a.ppa_prdo_id,
+                                a.ppa_phs_start,
+                                a.ppa_phs_complete,
+                                b.ppi_customer_no,
+                                b.ppi_customer_pono,
+                                b.ppi_prd_item,
+                                b.ppi_po_year,
+                                b.ppi_po_month
+                        FROM prodlib_prdschd_auto as a
+                                LEFT JOIN prodlib_prdschd_initpo AS b ON a.ppa_prdo_id = b.id) AS a
+                    GROUP BY ppa_prdo_id";
+
+        $dates = Db::query($sql);
+
+        $mssqldsn = [
+            // 数据库类型
+            'type'                      => 'Sqlsrv', //必须输入
+            // 用户名
+            'username'                  => 'sa',
+            // 密码
+            'password'                  => 'Sql_2008',
+            // 连接dsn,驱动、服务器地址和端口、数据库名称
+            'dsn'                    => 'odbc:Driver={SQL Server};Server=192.168.123.245,1433;Database=databasesdwx',
+            // 'dsn'                       => 'sqlsrv:server=192.168.123.245,1433;Database=databasesdwx;',
+        ];
+        $dbh = new PDO($mssqldsn['dsn'], $mssqldsn['username'], $mssqldsn['password']);
+
+        $flag = true;
+        // 这里应开启事务
+        foreach ($dates as $date) {
+            $sql = "UPDATE gbplan SET planindate = '{$date['planindate']}' WHERE 
+                kh_no = '{$date['ppi_customer_no']}' AND 
+                khpono = '{$date['ppi_customer_pono']}' AND 
+                sp_no = '{$date['ppi_prd_item']}'";
+            $flag = $flag !== false && $dbh->query(
+                $sql
+            );
+        }
+        return $flag;
     }
 
     /**
