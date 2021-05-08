@@ -432,7 +432,7 @@ class User
                 {$ud_table}
             WHERE 
                 sud_did = (SELECT id FROM {$gd_table} WHERE sgd_code = ?)
-        )";
+        ) AND con_status = 1";
 
         return Db::query($sql, [$code]);
     }
