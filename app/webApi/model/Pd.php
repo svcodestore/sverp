@@ -2,12 +2,13 @@
 /*
  * @Date: 2021-04-29 13:03:41
  * @LastEditors: Mok.CH
- * @LastEditTime: 2021-04-29 15:09:07
+ * @LastEditTime: 2021-04-30 14:40:40
  * @FilePath: \sverp\app\webApi\model\Pd.php
  */
 namespace app\webApi\model;
 
 use PDO;
+use think\facade\Log;
 
 class Pd
 {
@@ -60,6 +61,8 @@ class Pd
                     and pb.Unit_id=eu.Unit_id 
                     $where_str
             ";
+
+        Log::Debug($SQL);
         $info = $this->db->query($SQL)->fetchAll(PDO::FETCH_ASSOC);
         
         $count = count($info);
