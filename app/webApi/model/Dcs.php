@@ -2,7 +2,7 @@
 /*
  * @Date: 2021-05-06 07:56:29
  * @LastEditors: Mok.CH
- * @LastEditTime: 2021-05-07 16:36:43
+ * @LastEditTime: 2021-05-10 13:33:11
  * @FilePath: \sverp\app\webApi\model\Dcs.php
  */
 namespace app\webApi\model;
@@ -501,22 +501,6 @@ class Dcs
             ->where('id', $planId)
             ->update($plan);
   }
-
-  /**
-   * 根据plan id修改资料收集计划时间
-   * @param id
-   * @param planTime string
-   * @return
-   */
-  public function updatePlanGatherById($id, $planTime)
-  {
-    return Db::table($this->planGatherTable())
-              ->where('planId', $id)
-              ->update([
-                'planTime' => $planTime
-              ]);
-  }
-  
 
   /**
    * 日志表名
