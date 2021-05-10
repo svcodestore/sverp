@@ -436,4 +436,18 @@ class User
 
         return Db::query($sql, [$code]);
     }
+
+    /**
+     * 根据ID获取多个用户基本信息[列表]
+     * @param array ids
+     * @return array
+     */
+    public function getUsersByIds($ids)
+    {
+        $userhome_table = self::DBNAME . self::USRTBL;
+        if (is_array($ids)) $ids = implode(',', $ids);
+
+        $sql = "SELECT * FROM {$userhome_table} WHERE id IN ({$ids})";
+        return Db::query($sql);
+    }
 }
