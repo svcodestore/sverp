@@ -2,7 +2,7 @@
 /*
  * @Date: 2021-05-06 13:28:22
  * @LastEditors: Mok.CH
- * @LastEditTime: 2021-05-08 14:13:06
+ * @LastEditTime: 2021-05-10 14:42:40
  * @FilePath: \sverp\app\webApi\controller\Dcs.php
  */
 namespace app\webApi\controller;
@@ -30,21 +30,25 @@ class Dcs
       $plans = $model->getPlanByDirId($dir['id']);
       foreach ($plans as $plan) {
         $plan['directory'] = $dir;
-        // $plan['users'] = $model->
-        // $plan['planGather'] = $model->getPlanGatherById($plan['id']);
+        // TODO:获取系统用户
+        $plan['gatherUsername'] = $userModel->userInfo($plan['userId']);
+        if($plan['gatherUsername'] != null) {
+          $plan['gatherUsername'] = $plan['gatherUsername'][0]['con_name'];
+        }
 
-        // $plan['planAuth'] = $model->getPlanAuthById($plan['id']);
-        // if ($plan['planAuth'] != null) {
-        //   $_tmp_userIds =  explode(',', $plan['planAuth']);
-        //   foreach($_tmp_userIds as $_uid) {
-        //     $plan['planAuth']['users'][] = $model->
-        //   }
-        // }
-        
-        // $plan['planCheck'] = $model->getPlanCheckById($plan['id']);
-        $plan['gatherUsername'] = '123';
-        $plan['authUsers'] = [['username'=>321], ['username'=>'333']];
-        $plan['checkUsers'] = [['username'=>321], ['username'=>'333']];
+        if (!empty($plan['aUserId'])){
+          $aUserIds = $plan['aUserId'][-1]!==','?: substr($plan['aUserId'], 0 , -1);
+          $plan['authUsers'] = $userModel->getUsersByIds($aUserIds);
+        } else {
+          $plan['authUsers'] = [];
+        }
+
+        if (!empty($plan['cUserId'])) {
+          $cUserIds = $plan['cUserId'][-1]!==','?:substr($plan['cUserId'], 0, -1);
+          $plan['checkUsers'] = $userModel->getUsersByIds($cUserIds);
+        } else {
+          $plan['checkUsers'] = [];
+        }
         $resList [] = $plan;
       }
     }
@@ -115,7 +119,7 @@ class Dcs
         $res = $model->updatePlanGather($planId, $data);
         break;
       case 2:
-        $data = ['authActualTime'=> time()];
+        $data = ['authActualTime'=> date('Y-m-d H:i:s',time())];
         $data['userId'] = $userId;
         $res = $model->updatePlanAuth($planId, $data);
         break;
@@ -169,7 +173,7 @@ class Dcs
     
     $model = new DcsModel();
     if ($model->delPlan($id)) {
-      return json(['code'=>'0', 'msg'=>'success']);
+      return json(['code'=>0, 'msg'=>'success']);
     } 
     return json(['code'=>1, 'msg'=>'faild']);
   }
@@ -206,19 +210,22 @@ class Dcs
    */
   public function updatePlan()
   {
+    $planId = request()->param('id', null);
+    if (empty($planId)) return json(['code'=>1, 'msg'=>'param id required']);
+    $model = new DcsModel();
     $data = [
       'content' => request()->param('content'),
       'dirId' => request()->param('dirId'),
       'depPrincipal' => request()->param('depPrincipal'),
+    ];
+    $gatherData = [
       'planTime' => request()->param('planTime')
     ];
-    $planId = request()->param('planId', null);
-    if (empty($planId)) return json(['code'=>1, 'msg'=>'param id required']);
-    $model = new DcsModel();
-    if ($model->updatePlanById($planId, $data)) {
+    $r1 = $model->updatePlanById($planId, $data);
+    $r2 = $model->updatePlanGather($planId, $gatherData);
+    if ($r1 || $r2) {
       return json(['code'=>0, 'msg'=>'success']);
     }
-
     return json(['code'=>1, 'msg'=>'faild']);
   }
 
@@ -285,15 +292,16 @@ class Dcs
     if (empty($planId)) return json(['code'=>1, 'msg'=>'param planId is required']);
     
     $gatherData = [
-      // 'userId' => implode(',', request()->param('authUsers', [])),
       'gatherPlanTime' => request()->param('time', null),
-      'planId' => request()->param('planId')
     ];
     $model = new DcsModel();
-    if ($model->updatePlanGather($planId, $gatherData)) {
+    $res = $model->updatePlanGather($planId, $gatherData);
+    Log::debug($res);
+    if ($res) {
       $authData = [
         'userId' => implode(',', request()->param('authUsers', [])),
-        'authPlanTime' => request()->param('time', null)
+        'authPlanTime' => request()->param('time', null),
+        'planId' => $planId
       ];
 
       if ($model->addPlanAuth($authData)) {
