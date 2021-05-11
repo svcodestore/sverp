@@ -2,15 +2,16 @@
 /*
 * @Author: yanbuw1911
 * @Date: 2020-11-26 14:15:15
- * @LastEditTime: 2020-12-15 15:42:57
- * @LastEditors: yanbuw1911
+ * @LastEditTime: 2021-05-11 08:17:48
+ * @LastEditors: Mok.CH
 * @Description:
- * @FilePath: \backend\app\webApi\model\Privilege.php
+ * @FilePath: \sverp\app\webApi\model\Privilege.php
 */
 
 namespace app\webApi\model;
 
 use think\facade\Db;
+use think\facade\Log;
 
 class Privilege
 {
@@ -119,7 +120,19 @@ class Privilege
     {
         $db = 'starvc_syslib';
         $t = "$db.syslib_role_home";
-
+        
+        foreach($opt as $h=>$ot) {
+            foreach($ot as $k=>$o) {
+                if (empty($o['role_join_date'])) {
+                    $opt[$h][$k]['role_join_date'] = date('Y-m-d H:i:s', time());
+                }
+    
+                if(empty($o['role_mod_date'])) {
+                    $opt[$h][$k]['role_mod_date'] = date('Y-m-d H:i:s', time());
+                }
+            }
+        }
+        Log::debug($opt);
         return Common::handleOpt($t, $opt);
     }
 
