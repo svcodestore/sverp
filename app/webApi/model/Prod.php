@@ -2,7 +2,7 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-18 14:56:05
- * @LastEditTime: 2021-05-11 16:04:10
+ * @LastEditTime: 2021-05-11 16:07:10
  * @LastEditors: yanbuw1911
  * @Description: 生管部模型
  * @FilePath: /sverp/app/webApi/model/Prod.php
@@ -126,7 +126,7 @@ class Prod
 
         Db::startTrans();
         $sql = "TRUNCATE TABLE {$t}";
-        Db::table($t)->exec($sql);
+        Db::execute($sql);
         $data = array_map(function ($e) {
             return [
                 'map_ppi_prd_item' => $e['facno'],
