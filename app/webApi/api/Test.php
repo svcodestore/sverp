@@ -2,7 +2,7 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-04 08:50:09
- * @LastEditTime: 2021-05-11 10:05:47
+ * @LastEditTime: 2021-05-11 15:58:34
  * @LastEditors: yanbuw1911
  * @Description: 
  * @FilePath: /sverp/app/webApi/api/Test.php
@@ -403,5 +403,12 @@ English / 正體中文 123 Chinese 测试 测试测
         foreach ($cursor as $document) {
             print_r($document);
         }
+    }
+
+    public function syncPdoPhs()
+    {
+        $prodObj = new \app\webApi\model\Prod();
+        $res = $prodObj->syncPdoPhs();
+        dd($res);
     }
 }

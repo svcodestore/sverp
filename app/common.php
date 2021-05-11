@@ -2,7 +2,7 @@
 /*
  * @Date: 2020-12-28 14:21:43
  * @LastEditors: yanbuw1911
- * @LastEditTime: 2021-05-07 08:33:53
+ * @LastEditTime: 2021-05-11 15:30:15
  * @FilePath: /sverp/app/common.php
  */
 // 应用公共文件
@@ -159,4 +159,22 @@ function phpredis(): \Redis
 	$redis->connect(env('cache.redis_host'));
 	$redis->auth(env('cache.redis_password'));
 	return $redis;
+}
+
+function pdosqlsrv(array $options = null): \PDO
+{
+	$dbinfo = $options ?? [
+		// 数据库类型
+		'type'                      => 'Sqlsrv', //必须输入
+		// 用户名
+		'username'                  => 'sa',
+		// 密码
+		'password'                  => 'Sql_2008',
+		// 连接dsn,驱动、服务器地址和端口、数据库名称
+		// 'dsn'                    => 'odbc:Driver={SQL Server};Server=192.168.123.245,1433;Database=databasesdwx',
+		'dsn'                       => 'sqlsrv:server=192.168.123.245,1433;Database=databasesdwx;',
+	];
+	$dbh = new PDO($dbinfo['dsn'], $dbinfo['username'], $dbinfo['password']);
+
+	return $dbh;
 }
