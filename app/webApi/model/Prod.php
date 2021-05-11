@@ -2,7 +2,7 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-18 14:56:05
- * @LastEditTime: 2021-05-04 10:05:52
+ * @LastEditTime: 2021-05-07 15:07:23
  * @LastEditors: yanbuw1911
  * @Description: 生管部模型
  * @FilePath: /sverp/app/webApi/model/Prod.php
@@ -104,8 +104,8 @@ class Prod
             // 密码
             'password'                  => 'Sql_2008',
             // 连接dsn,驱动、服务器地址和端口、数据库名称
-            'dsn'                    => 'odbc:Driver={SQL Server};Server=192.168.123.245,1433;Database=databasesdwx',
-            // 'dsn'                       => 'sqlsrv:server=192.168.123.245,1433;Database=databasesdwx;',
+            // 'dsn'                    => 'odbc:Driver={SQL Server};Server=192.168.123.245,1433;Database=databasesdwx',
+            'dsn'                       => 'sqlsrv:server=192.168.123.245,1433;Database=databasesdwx;',
         ];
         $dbh = new PDO($mssqldsn['dsn'], $mssqldsn['username'], $mssqldsn['password']);
 
