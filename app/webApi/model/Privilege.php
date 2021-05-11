@@ -2,7 +2,7 @@
 /*
 * @Author: yanbuw1911
 * @Date: 2020-11-26 14:15:15
- * @LastEditTime: 2021-05-11 08:17:48
+ * @LastEditTime: 2021-05-11 08:24:02
  * @LastEditors: Mok.CH
 * @Description:
  * @FilePath: \sverp\app\webApi\model\Privilege.php
@@ -132,7 +132,7 @@ class Privilege
                 }
             }
         }
-        Log::debug($opt);
+        
         return Common::handleOpt($t, $opt);
     }
 
