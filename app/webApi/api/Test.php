@@ -2,7 +2,7 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-04 08:50:09
- * @LastEditTime: 2021-05-11 15:58:34
+ * @LastEditTime: 2021-05-12 16:31:19
  * @LastEditors: yanbuw1911
  * @Description: 
  * @FilePath: /sverp/app/webApi/api/Test.php
@@ -410,5 +410,50 @@ English / 正體中文 123 Chinese 测试 测试测
         $prodObj = new \app\webApi\model\Prod();
         $res = $prodObj->syncPdoPhs();
         dd($res);
+    }
+
+    public function syncPosition()
+    {
+        $conn = mysqli_connect('192.168.123.51', 'root', 'root', 'star_kpi');
+        $sql = "select distinct  show_stations from worker_info";
+        $res = mysqli_fetch_all(mysqli_query($conn, $sql), MYSQLI_ASSOC);
+        $rows = array_map(
+            function ($e) {
+                return ['cph_position' => $e['show_stations']];
+            },
+            $res
+        );
+        dd(Db::table('commonlib_position_home')->insertAll($rows));
+    }
+
+    public function syncTitle()
+    {
+        $conn = mysqli_connect('192.168.123.51', 'root', 'root', 'star_kpi');
+        $sql = "select distinct  worker_stations from worker_info";
+        $res = mysqli_fetch_all(mysqli_query($conn, $sql), MYSQLI_ASSOC);
+        $rows = array_map(
+            function ($e) {
+                return ['cpt_title' => $e['worker_stations']];
+            },
+            $res
+        );
+        dd(Db::table('commonlib_position_title')->insertAll($rows));
+    }
+
+    public function syncRank()
+    {
+        $conn = mysqli_connect('192.168.123.51', 'root', 'root', 'star_kpi');
+        $sql = "select distinct  stations_rank from worker_info where stations_rank != ''";
+        $res = mysqli_fetch_all(mysqli_query($conn, $sql), MYSQLI_ASSOC);
+        $rows = array_map(
+            function ($e) use ($conn) {
+                $sql = "select distinct rank_name from worker_info where stations_rank = '{$e['stations_rank']}'";
+                $res = mysqli_fetch_all(mysqli_query($conn, $sql), MYSQLI_ASSOC);
+                return ['cpr_rank_code' => $e['stations_rank'], 'cpr_rank_name' => $res[0]['rank_name']];
+            },
+            $res
+        );
+
+        dd(Db::table('commonlib_position_rank')->insertAll($rows));
     }
 }

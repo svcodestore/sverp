@@ -4,7 +4,7 @@ declare(strict_types=1);
 /*
 * @Author: yanbuw1911
 * @Date: 2021-01-07 14:07:28
- * @LastEditTime: 2021-04-16 13:35:11
+ * @LastEditTime: 2021-05-12 16:40:34
  * @LastEditors: yanbuw1911
 * @Description:
  * @FilePath: /sverp/app/webApi/model/Hrd.php
@@ -363,5 +363,65 @@ class Hrd
 
         Db::rollback();
         return false;
+    }
+
+    public function depts(): array
+    {
+        $t = 'commonlib_dept_workline';
+        $res = Db::table($t)->select()->toArray();
+
+        return $res;
+    }
+
+    public function handleDeptsOpt(array $opt)
+    {
+        $t = 'commonlib_dept_workline';
+
+        return Common::handleOpt($t, $opt);
+    }
+
+    public function titles(): array
+    {
+        $t = 'commonlib_position_title';
+        $res = Db::table($t)->select()->toArray();
+
+        return $res;
+    }
+
+    public function handleTitlesOpt(array $opt)
+    {
+        $t = 'commonlib_position_title';
+
+        return Common::handleOpt($t, $opt);
+    }
+
+    public function positions(): array
+    {
+        $t = 'commonlib_position_home';
+        $res = Db::table($t)->select()->toArray();
+
+        return $res;
+    }
+
+    public function handlePositionsOpt(array $opt)
+    {
+        $t = 'commonlib_position_home';
+
+        return Common::handleOpt($t, $opt);
+    }
+
+    public function ranks(): array
+    {
+        $t = 'commonlib_position_home';
+        $res = Db::table($t)->select()->toArray();
+
+        return $res;
+    }
+
+    public function handleRanksOpt(array $opt)
+    {
+        $t = 'commonlib_position_rank';
+
+        return Common::handleOpt($t, $opt);
     }
 }
