@@ -2,7 +2,7 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-04 09:00:03
- * @LastEditTime: 2021-05-08 15:21:46
+ * @LastEditTime: 2021-05-11 16:59:53
  * @LastEditors: Mok.CH
  * @Description: 
  * @FilePath: \sverp\app\webApi\controller\User.php
@@ -124,5 +124,12 @@ class User
         if (empty($code)) return json(['code'=>1, 'msg'=>'param code required!']);
         $data = (new ModelUser())->getUsersByGroupCode($code);
         return json(['data'=>$data]);
+    }
+
+    public function getDepartments()
+    {
+        $model = new ModelUser();
+        $deps = $model->getDepartments();
+        return json($deps);
     }
 }

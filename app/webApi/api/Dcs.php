@@ -2,7 +2,7 @@
 /*
  * @Date: 2021-05-06 14:11:21
  * @LastEditors: Mok.CH
- * @LastEditTime: 2021-05-08 14:17:14
+ * @LastEditTime: 2021-05-12 11:22:47
  * @FilePath: \sverp\app\webApi\api\Dcs.php
  */
 
@@ -81,5 +81,30 @@ class Dcs extends BaseController
   public function addPlanAuth()
   {
     return (new ControllerDcs)->addPlanAuth();
+  }
+  
+  public function getFiles()
+  {
+    return (new ControllerDcs)->getFiles();
+  }
+
+  public function uploadFile()
+  {
+    return (new ControllerDcs)->uploadFile();
+  }
+
+  public function downloadFile()
+  {
+    return (new ControllerDcs)->downloadFile();
+  }
+
+  public function addRecord()
+  {
+    return (new ControllerDcs)->addRecord();
+  }
+
+  public function updateVersion()
+  {
+    return (new ControllerDcs)->updateVersion();
   }
 }

@@ -1,4 +1,10 @@
 <?php
+/*
+ * @Date: 2021-04-19 16:19:10
+ * @LastEditors: Mok.CH
+ * @LastEditTime: 2021-05-11 13:37:38
+ * @FilePath: \sverp\config\filesystem.php
+ */
 
 return [
     // 默认磁盘
@@ -21,5 +27,10 @@ return [
             'visibility' => 'public',
         ],
         // 更多的磁盘配置信息
+        // 文控系统文件存储位置
+        'dcs' => [
+            'type'       => 'local',
+            'root'       => 'D:\dcs',
+        ],
     ],
 ];

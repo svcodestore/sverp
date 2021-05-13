@@ -2,7 +2,7 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-04 08:56:43
- * @LastEditTime: 2021-05-08 15:22:52
+ * @LastEditTime: 2021-05-11 10:53:52
  * @LastEditors: Mok.CH
  * @Description: 
  * @FilePath: \sverp\app\webApi\api\User.php
@@ -71,5 +71,10 @@ class User extends BaseController
     public function getUsersByGroupCode()
     {
         return $this->controller->getUsersByGroupCode();
+    }
+
+    public function getDepartments()
+    {
+        return $this->controller->getDepartments();
     }
 }

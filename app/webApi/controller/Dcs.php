@@ -2,7 +2,7 @@
 /*
  * @Date: 2021-05-06 13:28:22
  * @LastEditors: Mok.CH
- * @LastEditTime: 2021-05-10 14:42:40
+ * @LastEditTime: 2021-05-12 16:36:53
  * @FilePath: \sverp\app\webApi\controller\Dcs.php
  */
 namespace app\webApi\controller;
@@ -10,6 +10,7 @@ namespace app\webApi\controller;
 use think\facade\Log;
 use app\webApi\model\Dcs as DcsModel;
 use app\webApi\model\User as UserModel;
+use think\facade\Filesystem;
 
 class Dcs
 {
@@ -30,7 +31,6 @@ class Dcs
       $plans = $model->getPlanByDirId($dir['id']);
       foreach ($plans as $plan) {
         $plan['directory'] = $dir;
-        // TODO:获取系统用户
         $plan['gatherUsername'] = $userModel->userInfo($plan['userId']);
         if($plan['gatherUsername'] != null) {
           $plan['gatherUsername'] = $plan['gatherUsername'][0]['con_name'];
@@ -296,7 +296,7 @@ class Dcs
     ];
     $model = new DcsModel();
     $res = $model->updatePlanGather($planId, $gatherData);
-    Log::debug($res);
+
     if ($res) {
       $authData = [
         'userId' => implode(',', request()->param('authUsers', [])),
@@ -309,6 +309,198 @@ class Dcs
       }
     }
     return json(['code'=>1, 'msg'=>'faild']);
+  }
+
+  /** 
+   * 获取文档
+   * dirId 文档分类ID
+   * depId 部门id
+   */
+  public function getFiles()
+  {
+    $dirId = request()->param('dirId', null);
+    $depId = request()->param('depId', null);
+    $model = new DcsModel();
+    $userModel = new UserModel();
+    $datas = $model->getAllFilesByDepIdAndDir($depId, $dirId);
+    $retData = [];
+    foreach($datas as $k=>$f) {
+      // 如果有更新文档， 则采用更新的文档
+      if ($f['version'] != 0 && $f['versionNo'] == 1)
+        continue;
+      
+      $_dep = $userModel->getDepartments(['id'=>$f['departmentId']]);
+      if ($_dep) {
+        $f['department'] = $_dep[0];
+      } else {
+        $f['department'] = ['sgd_alias'=> ''];
+      }
+      
+      $retData[] = $f;
+    }
+    return json(['data'=>$retData]);
+  }
+
+  /**
+   * 文档上传
+   */
+  public function uploadFile()
+  {
+    $file = request()->file('files');
+    $userName = request()->param('userName', null);
+    $departmentId = request()->param('departmentId', null);
+    $dirId = request()->param('dirId', null);
+    $userId = request()->param('userId', null);
+    
+    if ($file === null) return json(['code'=>1, 'msg'=>'file required!']);
+    
+    $model = new DcsModel();
+    $file_path = $model->getFilePath($dirId, $departmentId);
+    $savename = Filesystem::putFile('dcs', $file, $file_path.$file->getOriginalName().'.'.$file->getOriginalExtension());
+
+    if ($savename) {
+      $data['cdate'] = date('Y-m-d H:i:s');
+      $data['filesName'] = $file->getOriginalName().'.'.$file->getOriginalExtension();
+      $data['filesPath'] = $file_path;
+      $data['departmentId'] = $departmentId;
+      $data['dirId'] = $dirId;
+      $data['userId'] = $userId;
+      $data['versionNo'] = 1;
+      $data['cuser'] = $userName;
+      $data['originalFileId'] = null;
+      $data['isoNo'] = $file->getOriginalName();
+      $model->addFile($data);
+      return json(['code'=>0, 'msg'=>'success']);
+    }
+
+    return json(['code'=>1, 'msg'=>'file upload faild']);
+  }
+
+  /**
+   * 下载文件
+   */
+  public function downloadFile()
+  {
+    $fileId = request()->param('fileId', null);
+    $userId = request()->param('userId', null);
+    
+    if (empty($fileId)) return json(['code'=>1, 'msg'=>'param fileId required!']);
+    
+    $model = new DcsModel();
+    $file = $model->getFileByFileId($fileId);
+    if ($file) {
+      return download($file['filesPath'], $file['filesName'], false, 3600);
+    }
+    return json(['code'=>1, 'msg'=>'file not exist']);
+  }
+
+  
+
+  /**
+   * 提交更新权限申请
+   */
+  public function addRecord()
+  {
+    $model = new DcsModel();
+    $recordData = [
+      'applyName' => request()->param('name', ''),
+      'applyDate' => date('Y-m-d H:i:s'),
+      'applyContent' => request()->param('content'),
+      'applyStatus' => 1,
+      'applyPassDate' => null,
+      'inForce' => null,
+      'operator' => null,
+      'userId' => request()->param('userId'),
+      'fileId' => request()->param('fileId'),
+    ];
+    if ($recordData['applyContent'] == '更新') {
+      $res = $model->findRecordOnlyApply($recordData);
+      if (!empty($res)) {
+        return json(['code'=>1, 'msg'=>'该文件已有用户提交更新申请']);
+      }
+
+      $res2 = $model->findRecordOnlyPass($recordData);
+      if (!empty($res2)) {
+        return json(['code'=>1, 'msg'=>'无法申请，存在已通过审核但并未更新文件记录']);
+      }
+    } else {
+      $res = $model->findRecordOnly($recordData);
+      if (!empty($res)) {
+        return json(['code'=>1, 'msg'=>'请勿重复申请']);
+      }
+      $res2 = $model->selectPass($recordData);
+      if (!empty($res2)) {
+        return json(['code'=>1, 'msg'=>'已提交，并已通过']); 
+      }
+    }
+
+    if ($model->addRecord($recordData)) {
+      return json(['code'=>0 , 'msg'=>'申请已提交']);
+    }
+    
+    return json(['code'=>1, 'msg'=>'提交失败']);
+  }
+
+  /**
+   * 更新文件版本
+   * 
+   */
+  public function updateVersion()
+  {
+    $file = request()->file('file');
+    $fileId = request()->param('fileId', null);
+    $userName = request()->param('userName', null);
+    $departmentId = request()->param('departmentId', null);
+    $dirId = request()->param('dirId', null);
+    $userId = request()->param('userId', null);
+    $cuser = $userName;
+
+    $model = new DcsModel();
+    $file_path = $model->getFilePath($dirId, $departmentId);
+    
+    $recordData = [
+      'applyContent' => '更新',
+      'fileId' => $fileId,
+    ];
+
+    $record = $model->findRecordOnlyApply($recordData);
+    if(!empty($record)) {
+      return json(['code'=>1, 'msg'=>'更新失败，该文件有更新申请，请先审核']);
+    }
+
+    $r2 = $model->findRecordOnlyPass($recordData);
+    if (!empty($r2)){
+      $cuser = $r2['applyName'];
+    }
+
+    $oldFile = $model->getFileByFileId($fileId);
+
+    if (Filesystem::putFile('dcs', $file, $file_path)) {
+      $newFile = [
+        'filesPath' => $file_path,
+        'filesName' => $file->getOriginalName().'.'.$file->getOriginalExtension(),
+        'cuser' => $cuser,
+        'departmentId' => $departmentId,
+        'isoNo' => $file->getOriginalName(),
+        'version' => 0,
+        'versionNo' => $oldFile['versionNo'] + 1,
+        'dirId' => $dirId,
+        'userId' => $userId,
+        'originalFileId' => empty($oldFile['originalFileId']) ? $fileId : $oldFile['originalFileId']
+      ];
+
+      $newFileId = $model->addFile($newFile);
+      if ($newFileId) {
+        $model->updateFilesVersionId($newFile['originalFileId'], $newFileId);
+        if (!empty($record)) {
+          $model->updateRecordOut($record['id']);
+        }
+        $model->recordLog(5, $newFile['filesName'], $newFile['userId']);
+        return json(['code'=>0, 'msg'=>'更新成功']);
+      }
+    }
+    
+    return json(['code'=>1, 'msg'=>'更新失败']);
   }
 
 }

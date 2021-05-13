@@ -2,13 +2,14 @@
 /*
  * @Date: 2021-05-06 07:56:29
  * @LastEditors: Mok.CH
- * @LastEditTime: 2021-05-10 13:33:11
+ * @LastEditTime: 2021-05-12 13:28:49
  * @FilePath: \sverp\app\webApi\model\Dcs.php
  */
 namespace app\webApi\model;
 
 use think\facade\Db;
 use think\facade\Log;
+use app\webApi\model\User;
 
 class Dcs 
 {
@@ -62,8 +63,13 @@ class Dcs
    */
   public function getAllFilesByDepIdAndDir($departmentId, $dirId)
   {
+    $where = [];
+    if ($departmentId) $where[] = ['departmentId', '=', $departmentId];
+    if ($dirId) $where[] = ['dirId', '=', $dirId];
+
     return Db::table($this->fileTable())
-            ->where(['departmenId'=>$departmentId, 'dirId'=>$dirId])
+            ->where($where)
+            ->order('filesId desc')
             ->select()->toArray();
   }
 
@@ -83,7 +89,22 @@ class Dcs
   {
     return Db::table($this->fileTable())
               ->where(['filesId'=>$fileId])
-              ->select()->toArray();
+              ->find();
+  }
+
+  /**
+   * 获取存储文件路径
+   */
+  public function getFilePath($dirId, $departmentId)
+  {
+    $file_path = 'D:\\dcs';
+    $dir = $this->getDirById($dirId);
+    $userModel = new User();
+    $department = $userModel->getDepartments(['id'=>$departmentId]);
+
+    if ($department) $department = $department[0];
+
+    return implode('\\', [$dir['dirName'], $department['sgd_name']]);
   }
 
   /**
@@ -93,7 +114,7 @@ class Dcs
    */
   public function addFile(array $file)
   {
-    return Db::table($this->fileTable())->insert($file);
+    return Db::table($this->fileTable())->insertGetId($file);
   }
 
   /**
@@ -268,7 +289,7 @@ class Dcs
           g.gatherPlanTime, g.userId as gUserId, g.planTime, g.actualTime,
           a.userId as aUserId, a.authActualTime, a.authUserId, a.authPlanTime, 
           c.checkPlanTime, c.checkActualTime, c.userId as cUserId, c.checkUserId
-        ',)
+        ')
         ->leftJoin($this->planAuthTable().' a', 'p.id = a.planId')
         ->leftJoin($this->planCheckTable(). ' c', 'p.id = c.planId')
         ->leftJoin($this->planGatherTable(). ' g', 'p.id = g.planId');
@@ -534,6 +555,36 @@ class Dcs
               ->find();
   }
 
+  public function recordLog($operation, $filename, $userId)
+  {
+    $date = date('Y-m-d H:i:s', time());
+    $log = [
+      'operationContent' => '',
+      'operationDate' => $date,
+      'userId' => $userId
+    ];
+    $userModel = new User();
+    $user = $userModel->userInfo($userId);
+    if (empty($user)) return;
+    $user = $user[0];
+    switch($operation) {
+      case 2:
+        $log['operationContent'] = "用户: {$user['con_name']} 上传了 ---> {$filename}";
+        break;
+      case 3:
+        $log['operationContent'] = "用户: {$user['con_name']} 下载了 ---> {$filename}";
+        break;
+      case 4:
+        $log['operationContent'] = "用户: {$user['con_name']} 更新了 ---> {$filename}";
+        break;
+      case 5:
+        $log['operationContent'] = "用户: {$user['con_name']} 浏览了 ---> {$filename}";
+        break;
+    }
+
+    $this->addLog($log);
+  }
+
   /**
    * 申请单表名
    * @return string
@@ -596,27 +647,29 @@ class Dcs
 
   /**
    * 判断申请更新所有用户只能有个一用户申请
-   * @param record 判断条件文件id，申请内容，申请状态为1
+   * @param where 判断条件文件id，申请内容，申请状态为1
    * @return
    */
   public function findRecordOnlyApply($where)
   {
     return Db::table($this->recordTable())
-              ->where($where)
+              ->where('fileId', $where['fileId'])
+              ->where('applyContent', $where['applyContent'])
               ->where('applyStatus', 1)
               ->select()->toArray();
   }
 
   /**
    * 更新审核通过但还未更新的，无法进行审核
-   * @param record 判断条件文件id，申请内容，申请状态为2
+   * @param where 判断条件文件id，申请内容，申请状态为2
    * @return
    */
   public function findRecordOnlyPass($where)
   {
     return Db::table($this->recordTable())
               ->where('applyStatus', 2)
-              ->where($where)
+              ->where('fileId', $where['fileId'])
+              ->where('applyContent', $where['applyContent'])
               ->select()->toArray();
   }
 
