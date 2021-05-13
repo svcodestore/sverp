@@ -2,7 +2,7 @@
 /*
 * @Author: yanbuw1911
 * @Date: 2020-12-29 10:47:11
- * @LastEditTime: 2021-02-27 11:11:03
+ * @LastEditTime: 2021-05-13 08:08:35
  * @LastEditors: yanbuw1911
 * @Description:
  * @FilePath: /sverp/app/webApi/controller/Mis.php
@@ -34,29 +34,5 @@ class Mis
             fclose($handle); //关闭文件句柄
             exit;
         }
-    }
-
-    public function startNodeWeb()
-    {
-        $cmd = 'start-node-spare.bat';
-        exec($cmd, $res);
-
-        return $res[0];
-    }
-
-    public function stopNodeWeb()
-    {
-        $cmd = 'stop-node-spare.bat';
-        exec($cmd, $res);
-
-        return $res[0];
-    }
-
-    public function restartNodeWeb()
-    {
-        $cmd = 'restart-node-spare.bat';
-        exec($cmd, $res);
-
-        return $res[0];
     }
 }
