@@ -2,7 +2,7 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-18 14:56:05
- * @LastEditTime: 2021-05-04 10:05:52
+ * @LastEditTime: 2021-05-11 16:07:10
  * @LastEditors: yanbuw1911
  * @Description: 生管部模型
  * @FilePath: /sverp/app/webApi/model/Prod.php
@@ -74,7 +74,6 @@ class Prod
         return $res;
     }
 
-
     /**
      * @description: 同步计划交期
      * @return bool
@@ -96,18 +95,7 @@ class Prod
 
         $dates = Db::query($sql);
 
-        $mssqldsn = [
-            // 数据库类型
-            'type'                      => 'Sqlsrv', //必须输入
-            // 用户名
-            'username'                  => 'sa',
-            // 密码
-            'password'                  => 'Sql_2008',
-            // 连接dsn,驱动、服务器地址和端口、数据库名称
-            'dsn'                    => 'odbc:Driver={SQL Server};Server=192.168.123.245,1433;Database=databasesdwx',
-            // 'dsn'                       => 'sqlsrv:server=192.168.123.245,1433;Database=databasesdwx;',
-        ];
-        $dbh = new PDO($mssqldsn['dsn'], $mssqldsn['username'], $mssqldsn['password']);
+        $dbh = pdosqlsrv();
 
         $flag = true;
         // 这里应开启事务
@@ -123,6 +111,44 @@ class Prod
         return $flag;
     }
 
+
+    /**
+     * @description: 同步工站
+     * @return bool
+     */
+    public function syncPdoPhs(): bool
+    {
+        $t = "prodlibmap_prdschd_initpdo2phs";
+
+        $dbh = pdosqlsrv();
+        $sql = "SELECT * FROM prdmodel";
+        $toBeSyncData = $dbh->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+
+        Db::startTrans();
+        $sql = "TRUNCATE TABLE {$t}";
+        Db::execute($sql);
+        $data = array_map(function ($e) {
+            return [
+                'map_ppi_prd_item' => $e['facno'],
+                'map_ppi_phsid' => $e['jdno'],
+                'map_ppi_phs' => $e['jdname'],
+                'map_ppi_phs_desc' => $e['descn'],
+                'map_ppi_ismaster' => $e['iszf'] != '2' ? 1 : 0,
+                'map_ppi_seq' => $e['item'],
+                'map_ppi_cost_time' => (int) $e['price'],
+                'map_ppi_deadtime' => $e['worktimesh'],
+                'map_ppi_aheadtime' => $e['pricez'],
+                'map_ppi_outime' => $e['pricef'],
+            ];
+        }, $toBeSyncData);
+        $result = Db::name('starvc_homedb.prodlibmap_prdschd_initpdo2phs')->insertAll($data);
+        if (false !== $result) {
+            Db::commit();
+        }
+
+        return false !== $result;
+    }
+
     /**
      * @description: 同步生产单
      * @param string $prodLine 生产线
@@ -134,18 +160,7 @@ class Prod
     {
         $t = "prodlib_prdschd_initpo";
 
-        $dbinfo = [
-            // 数据库类型
-            'type'                      => 'Sqlsrv', //必须输入
-            // 用户名
-            'username'                  => 'sa',
-            // 密码
-            'password'                  => 'Sql_2008',
-            // 连接dsn,驱动、服务器地址和端口、数据库名称
-            // 'dsn'                    => 'odbc:Driver={SQL Server};Server=192.168.123.245,1433;Database=databasesdwx',
-            'dsn'                       => 'sqlsrv:server=192.168.123.245,1433;Database=databasesdwx;',
-        ];
-        $dbh = new PDO($dbinfo['dsn'], $dbinfo['username'], $dbinfo['password']);
+        $dbh = pdosqlsrv();
 
         $sql = "SELECT * FROM gbplan WHERE year=$year and month=$month AND partno='$prodLine'";
         $toBeSyncData = $dbh->query($sql)->fetchAll(PDO::FETCH_ASSOC);

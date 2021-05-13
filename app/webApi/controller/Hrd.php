@@ -4,7 +4,7 @@ declare(strict_types=1);
 /*
 * @Author: yanbuw1911
 * @Date: 2021-01-07 14:15:16
- * @LastEditTime: 2021-05-07 09:11:05
+ * @LastEditTime: 2021-05-12 16:50:02
  * @LastEditors: yanbuw1911
 * @Description:
  * @FilePath: /sverp/app/webApi/controller/Hrd.php
@@ -163,5 +163,69 @@ class Hrd
         }
 
         return json($data);
+    }
+
+    public function getDepts()
+    {
+        $rtn['result'] = true;
+        $rtn['data'] = (new ModelHrd)->depts();
+
+        return json($rtn);
+    }
+
+    public function saveDeptsOpt()
+    {
+        $opt = input();
+        $rtn['result'] = (new ModelHrd())->handleDeptsOpt($opt);
+
+        return json($rtn);
+    }
+
+    public function getTitles()
+    {
+        $rtn['result'] = true;
+        $rtn['data'] = (new ModelHrd)->titles();
+
+        return json($rtn);
+    }
+
+    public function saveTitlesOpt()
+    {
+        $opt = input();
+        $rtn['result'] = (new ModelHrd())->handleTitlesOpt($opt);
+
+        return json($rtn);
+    }
+
+    public function getPositions()
+    {
+        $rtn['result'] = true;
+        $rtn['data'] = (new ModelHrd)->positions();
+
+        return json($rtn);
+    }
+
+    public function savePositionsOpt()
+    {
+        $opt = input();
+        $rtn['result'] = (new ModelHrd())->handlePositionsOpt($opt);
+
+        return json($rtn);
+    }
+
+    public function getRanks()
+    {
+        $rtn['result'] = true;
+        $rtn['data'] = (new ModelHrd)->ranks();
+
+        return json($rtn);
+    }
+
+    public function saveRanksOpt()
+    {
+        $opt = input();
+        $rtn['result'] = (new ModelHrd())->handleRanksOpt($opt);
+
+        return json($rtn);
     }
 }
