@@ -2,7 +2,7 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-04 08:50:09
- * @LastEditTime: 2021-05-12 16:31:19
+ * @LastEditTime: 2021-05-13 16:20:10
  * @LastEditors: yanbuw1911
  * @Description: 
  * @FilePath: /sverp/app/webApi/api/Test.php
@@ -455,5 +455,18 @@ English / 正體中文 123 Chinese 测试 测试测
         );
 
         dd(Db::table('commonlib_position_rank')->insertAll($rows));
+    }
+
+    public function getWinFile()
+    {
+        $add = '//192.168.123.252/data$/database/employee.DBF';
+        $e = "Driver={Microsoft Visual FoxPro Driver};SourceType=DBf;SourceDB=" . $add . ";Exclusive=NO;collate=Machine;NULL=NO;DELETED=NO;BACKGROUNDFETCH=NO;";
+        $odbc = odbc_connect($e, '', '');
+        // echo $add;
+        // $query = "select * from " . $add . ";";
+        // $result_id = odbc_do($odbc, $query);
+        // odbc_result_all($result_id, "border=1 width=50%");
+        dump($odbc);
+        odbc_close($odbc);
     }
 }

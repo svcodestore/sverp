@@ -4,7 +4,7 @@ declare(strict_types=1);
 /*
 * @Author: yanbuw1911
 * @Date: 2021-01-07 14:15:16
- * @LastEditTime: 2021-05-12 16:50:02
+ * @LastEditTime: 2021-05-13 10:30:50
  * @LastEditors: yanbuw1911
 * @Description:
  * @FilePath: /sverp/app/webApi/controller/Hrd.php
@@ -225,6 +225,22 @@ class Hrd
     {
         $opt = input();
         $rtn['result'] = (new ModelHrd())->handleRanksOpt($opt);
+
+        return json($rtn);
+    }
+
+    public function getKpiScopes()
+    {
+        $rtn['result'] = true;
+        $rtn['data'] = (new ModelHrd)->kpiScopes();
+
+        return json($rtn);
+    }
+
+    public function saveKpiScopesOpt()
+    {
+        $opt = input();
+        $rtn['result'] = (new ModelHrd())->handleKpiScopesOpt($opt);
 
         return json($rtn);
     }

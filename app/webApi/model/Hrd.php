@@ -4,7 +4,7 @@ declare(strict_types=1);
 /*
 * @Author: yanbuw1911
 * @Date: 2021-01-07 14:07:28
- * @LastEditTime: 2021-05-12 16:40:34
+ * @LastEditTime: 2021-05-13 10:29:35
  * @LastEditors: yanbuw1911
 * @Description:
  * @FilePath: /sverp/app/webApi/model/Hrd.php
@@ -373,7 +373,7 @@ class Hrd
         return $res;
     }
 
-    public function handleDeptsOpt(array $opt)
+    public function handleDeptsOpt(array $opt): bool
     {
         $t = 'commonlib_dept_workline';
 
@@ -388,7 +388,7 @@ class Hrd
         return $res;
     }
 
-    public function handleTitlesOpt(array $opt)
+    public function handleTitlesOpt(array $opt): bool
     {
         $t = 'commonlib_position_title';
 
@@ -403,7 +403,7 @@ class Hrd
         return $res;
     }
 
-    public function handlePositionsOpt(array $opt)
+    public function handlePositionsOpt(array $opt): bool
     {
         $t = 'commonlib_position_home';
 
@@ -412,15 +412,30 @@ class Hrd
 
     public function ranks(): array
     {
-        $t = 'commonlib_position_home';
+        $t = 'commonlib_position_rank';
         $res = Db::table($t)->select()->toArray();
 
         return $res;
     }
 
-    public function handleRanksOpt(array $opt)
+    public function handleRanksOpt(array $opt): bool
     {
         $t = 'commonlib_position_rank';
+
+        return Common::handleOpt($t, $opt);
+    }
+
+    public function kpiScopes(): array
+    {
+        $t = 'commonlib_kpi_scope';
+        $res = Db::table($t)->select()->toArray();
+
+        return $res;
+    }
+
+    public function handleKpiScopesOpt(array $opt): bool
+    {
+        $t = 'commonlib_kpi_scope';
 
         return Common::handleOpt($t, $opt);
     }
