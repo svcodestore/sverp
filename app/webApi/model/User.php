@@ -464,7 +464,7 @@ class User
             $_WHERE = array_merge($_WHERE, $where);
         }
 
-        $data = Db::table($table)->where($_WHERE)->select();
+        $data = Db::table($table)->where($_WHERE)->select()->toArray();
         return $data;
     }
 

@@ -2,7 +2,7 @@
 /*
  * @Date: 2021-05-06 07:56:29
  * @LastEditors: Mok.CH
- * @LastEditTime: 2021-05-12 13:28:49
+ * @LastEditTime: 2021-05-14 09:08:52
  * @FilePath: \sverp\app\webApi\model\Dcs.php
  */
 namespace app\webApi\model;
@@ -101,10 +101,9 @@ class Dcs
     $dir = $this->getDirById($dirId);
     $userModel = new User();
     $department = $userModel->getDepartments(['id'=>$departmentId]);
-
     if ($department) $department = $department[0];
 
-    return implode('\\', [$dir['dirName'], $department['sgd_name']]);
+    return implode('\\', [$file_path, $dir['dirName'], $department['sgd_alias']]);
   }
 
   /**
@@ -131,7 +130,8 @@ class Dcs
 
   /**
    * 修改最新版本号
-   * @param fileRow Array
+   * @param fileId Integer
+   * @param version integer
    * @return
    */
   public function updateFilesVersionId($fileId, $version)

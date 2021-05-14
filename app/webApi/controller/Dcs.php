@@ -2,15 +2,16 @@
 /*
  * @Date: 2021-05-06 13:28:22
  * @LastEditors: Mok.CH
- * @LastEditTime: 2021-05-12 16:36:53
+ * @LastEditTime: 2021-05-14 09:17:48
  * @FilePath: \sverp\app\webApi\controller\Dcs.php
  */
 namespace app\webApi\controller;
 
 use think\facade\Log;
+use think\facade\Filesystem;
+use think\exception\FileException;
 use app\webApi\model\Dcs as DcsModel;
 use app\webApi\model\User as UserModel;
-use think\facade\Filesystem;
 
 class Dcs
 {
@@ -174,7 +175,7 @@ class Dcs
     $model = new DcsModel();
     if ($model->delPlan($id)) {
       return json(['code'=>0, 'msg'=>'success']);
-    } 
+    }
     return json(['code'=>1, 'msg'=>'faild']);
   }
 
@@ -325,8 +326,8 @@ class Dcs
     $datas = $model->getAllFilesByDepIdAndDir($depId, $dirId);
     $retData = [];
     foreach($datas as $k=>$f) {
-      // 如果有更新文档， 则采用更新的文档
-      if ($f['version'] != 0 && $f['versionNo'] == 1)
+      // 如果有更新文档， 则只显示最新的文档信息
+      if ($f['version'] != 0 && ($f['versionNo'] == 1 || $f['originalFileId'] !== null))
         continue;
       
       $_dep = $userModel->getDepartments(['id'=>$f['departmentId']]);
@@ -351,16 +352,24 @@ class Dcs
     $departmentId = request()->param('departmentId', null);
     $dirId = request()->param('dirId', null);
     $userId = request()->param('userId', null);
-    
     if ($file === null) return json(['code'=>1, 'msg'=>'file required!']);
     
     $model = new DcsModel();
     $file_path = $model->getFilePath($dirId, $departmentId);
-    $savename = Filesystem::putFile('dcs', $file, $file_path.$file->getOriginalName().'.'.$file->getOriginalExtension());
+    if (!is_dir($file_path)) {
+      mkdir($file_path, 0777, true);
+    }
+    
+    try{
+      $file->move($file_path, $file_path.$file->getOriginalName());
+      $file_saved = true;
+    } catch (FileException $e) {
+      $file_saved = false;
+    }
 
-    if ($savename) {
+    if ($file_saved) {
       $data['cdate'] = date('Y-m-d H:i:s');
-      $data['filesName'] = $file->getOriginalName().'.'.$file->getOriginalExtension();
+      $data['filesName'] = $file->getOriginalName();
       $data['filesPath'] = $file_path;
       $data['departmentId'] = $departmentId;
       $data['dirId'] = $dirId;
@@ -368,7 +377,7 @@ class Dcs
       $data['versionNo'] = 1;
       $data['cuser'] = $userName;
       $data['originalFileId'] = null;
-      $data['isoNo'] = $file->getOriginalName();
+      $data['isoNo'] = str_replace('.'.$file->getOriginalExtension(), '', $file->getOriginalName());
       $model->addFile($data);
       return json(['code'=>0, 'msg'=>'success']);
     }
@@ -391,6 +400,7 @@ class Dcs
     if ($file) {
       return download($file['filesPath'], $file['filesName'], false, 3600);
     }
+    $model->recordLog(3, $file['filesName'], $userId);
     return json(['code'=>1, 'msg'=>'file not exist']);
   }
 
@@ -447,6 +457,7 @@ class Dcs
    */
   public function updateVersion()
   {
+    
     $file = request()->file('file');
     $fileId = request()->param('fileId', null);
     $userName = request()->param('userName', null);
@@ -475,22 +486,32 @@ class Dcs
 
     $oldFile = $model->getFileByFileId($fileId);
 
-    if (Filesystem::putFile('dcs', $file, $file_path)) {
+    try{
+      $file->move($file_path, $file_path.$file->getOriginalName());
+      $file_saved = true;
+    } catch (FileException $e) {
+      $file_saved = false;
+    }
+    
+    if ($file_saved) {
       $newFile = [
         'filesPath' => $file_path,
-        'filesName' => $file->getOriginalName().'.'.$file->getOriginalExtension(),
+        'filesName' => $file->getOriginalName(),
         'cuser' => $cuser,
         'departmentId' => $departmentId,
-        'isoNo' => $file->getOriginalName(),
+        'isoNo' => str_replace('.'.$file->getOriginalExtension(), '', $file->getOriginalName()),
         'version' => 0,
         'versionNo' => $oldFile['versionNo'] + 1,
         'dirId' => $dirId,
         'userId' => $userId,
+        'cdate' => date('Y-m-d H:i:s'),
         'originalFileId' => empty($oldFile['originalFileId']) ? $fileId : $oldFile['originalFileId']
       ];
 
       $newFileId = $model->addFile($newFile);
       if ($newFileId) {
+        // 上一文件， 及源文件的 version 都改为新文件记录的id
+        $model->updateFilesVersionId($fileId, $newFileId);
         $model->updateFilesVersionId($newFile['originalFileId'], $newFileId);
         if (!empty($record)) {
           $model->updateRecordOut($record['id']);
@@ -501,6 +522,30 @@ class Dcs
     }
     
     return json(['code'=>1, 'msg'=>'更新失败']);
+  }
+
+  public function getFilesVersion()
+  {
+    $originalFileId = request()->param('original', null);
+    if (empty($originalFileId)) return json(['code'=>1, 'msg'=>'param original is required']);
+    $model = new DcsModel();
+    $files = $model->getFilesVersion($originalFileId);
+    $files[] = $model->getFileByFileId($originalFileId);
+    return json(['data'=>$files]);
+  }
+
+  /**
+   * 记录pdf查看的记录
+   */
+  public function recordPDFShow()
+  {
+    $fileId = request()->param('fileId', null);
+    $userId = request()->param('userId', null);
+
+    $model = new DcsModel();
+    $file = $model->getFileByFileId($fileId);
+    $model->recordLog(5, $file['filesName'], $userId);
+    return json(['code'=>0, 'msg'=>'success']);
   }
 
 }

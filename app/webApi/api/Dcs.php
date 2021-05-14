@@ -2,7 +2,7 @@
 /*
  * @Date: 2021-05-06 14:11:21
  * @LastEditors: Mok.CH
- * @LastEditTime: 2021-05-12 11:22:47
+ * @LastEditTime: 2021-05-13 10:52:14
  * @FilePath: \sverp\app\webApi\api\Dcs.php
  */
 
@@ -106,5 +106,15 @@ class Dcs extends BaseController
   public function updateVersion()
   {
     return (new ControllerDcs)->updateVersion();
+  }
+
+  public function getFilesVersion()
+  {
+    return (new ControllerDcs)->getFilesVersion();
+  }
+
+  public function recordPDFShow()
+  {
+    return (new ControllerDcs)->recordPDFShow();
   }
 }
