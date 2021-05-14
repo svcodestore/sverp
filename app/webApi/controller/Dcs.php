@@ -2,7 +2,7 @@
 /*
  * @Date: 2021-05-06 13:28:22
  * @LastEditors: Mok.CH
- * @LastEditTime: 2021-05-14 09:17:48
+ * @LastEditTime: 2021-05-14 16:03:27
  * @FilePath: \sverp\app\webApi\controller\Dcs.php
  */
 namespace app\webApi\controller;
@@ -76,8 +76,33 @@ class Dcs
   {
     $userId = request()->param('userId', null);
     $model = new DcsModel();
+    $userModel = new UserModel();
     $plans = $model->getPlanByUser($userId);
-    return json(['data'=>$plans]);
+    $directorList = $model->getAllDir();
+    $resList = [];
+    foreach ($plans as $plan) {
+      $plan['directory'] = $directorList[$plan['dirId'] - 1];
+      $plan['gatherUsername'] = $userModel->userInfo($plan['userId']);
+      if($plan['gatherUsername'] != null) {
+        $plan['gatherUsername'] = $plan['gatherUsername'][0]['con_name'];
+      }
+
+      if (!empty($plan['aUserId'])){
+        $aUserIds = $plan['aUserId'][-1]!==','?: substr($plan['aUserId'], 0 , -1);
+        $plan['authUsers'] = $userModel->getUsersByIds($aUserIds);
+      } else {
+        $plan['authUsers'] = [];
+      }
+
+      if (!empty($plan['cUserId'])) {
+        $cUserIds = $plan['cUserId'][-1]!==','?:substr($plan['cUserId'], 0, -1);
+        $plan['checkUsers'] = $userModel->getUsersByIds($cUserIds);
+      } else {
+        $plan['checkUsers'] = [];
+      }
+      $resList [] = $plan;
+    }
+    return json(['data'=>$resList]);
   }
 
   public function getDir()
@@ -90,13 +115,35 @@ class Dcs
   public function getFinishedPlan()
   {
     $model = new DcsModel();
+    $userModel = new userModel();
     $data = $model->getFinishedPlan();
     $resList = [];
-    
+    $directorList = $model->getAllDir();
     foreach ($data as $plan) {
       // 处理 userid
+      $plan['directory'] = $directorList[$plan['dirId'] - 1];
+      $plan['gatherUsername'] = $userModel->userInfo($plan['userId']);
+      if($plan['gatherUsername'] != null) {
+        $plan['gatherUsername'] = $plan['gatherUsername'][0]['con_name'];
+      }
+      
+      if (!empty($plan['aUserId'])){
+        $aUserIds = $plan['aUserId'][-1]!==','?: substr($plan['aUserId'], 0 , -1);
+        $plan['authUsers'] = $userModel->getUsersByIds($aUserIds);
+      } else {
+        $plan['authUsers'] = [];
+      }
+
+      if (!empty($plan['cUserId'])) {
+        $cUserIds = $plan['cUserId'][-1]!==','?:substr($plan['cUserId'], 0, -1);
+        $plan['checkUsers'] = $userModel->getUsersByIds($cUserIds);
+      } else {
+        $plan['checkUsers'] = [];
+      }
+      Log::debug($plan);
+      $resList [] = $plan;
     }
-    return json(['data'=>$data]);
+    return json(['data'=>$resList]);
   }
 
   /**
