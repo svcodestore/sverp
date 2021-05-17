@@ -2,7 +2,7 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-18 14:56:05
- * @LastEditTime: 2021-05-11 16:07:10
+ * @LastEditTime: 2021-05-17 08:31:35
  * @LastEditors: yanbuw1911
  * @Description: 生管部模型
  * @FilePath: /sverp/app/webApi/model/Prod.php
@@ -144,6 +144,8 @@ class Prod
         $result = Db::name('starvc_homedb.prodlibmap_prdschd_initpdo2phs')->insertAll($data);
         if (false !== $result) {
             Db::commit();
+        } else {
+            Db::rollback();
         }
 
         return false !== $result;
