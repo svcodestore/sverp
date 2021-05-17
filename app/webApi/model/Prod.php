@@ -2,7 +2,7 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-18 14:56:05
- * @LastEditTime: 2021-05-17 08:31:35
+ * @LastEditTime: 2021-05-17 08:40:22
  * @LastEditors: yanbuw1911
  * @Description: 生管部模型
  * @FilePath: /sverp/app/webApi/model/Prod.php
@@ -124,7 +124,6 @@ class Prod
         $sql = "SELECT * FROM prdmodel";
         $toBeSyncData = $dbh->query($sql)->fetchAll(PDO::FETCH_ASSOC);
 
-        Db::startTrans();
         $sql = "TRUNCATE TABLE {$t}";
         Db::execute($sql);
         $data = array_map(function ($e) {
@@ -142,11 +141,6 @@ class Prod
             ];
         }, $toBeSyncData);
         $result = Db::name('starvc_homedb.prodlibmap_prdschd_initpdo2phs')->insertAll($data);
-        if (false !== $result) {
-            Db::commit();
-        } else {
-            Db::rollback();
-        }
 
         return false !== $result;
     }
