@@ -2,7 +2,7 @@
 /*
  * @Date: 2021-04-19 16:19:10
  * @LastEditors: Mok.CH
- * @LastEditTime: 2021-04-28 09:46:42
+ * @LastEditTime: 2021-05-18 15:49:39
  * @FilePath: \sverp\config\console.php
  */
 // +----------------------------------------------------------------------
@@ -14,5 +14,6 @@ return [
         'hello' => 'app\command\Hello',
         'tpm-notice' => 'app\command\TPMNotifier',
         'tpm-cycle' => 'app\command\TPMCycleJob',
+        'tpm-aliyun' => 'app\command\TPMCopyAliyunData'
     ]
 ];

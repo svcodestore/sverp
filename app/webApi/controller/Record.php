@@ -2,7 +2,7 @@
 /*
  * @Author: yu chen
  * @Date: 2020-12-07 16:23:05
- * @LastEditTime: 2021-04-28 08:51:20
+ * @LastEditTime: 2021-05-18 14:47:38
  * @LastEditors: Mok.CH
  * @Description: In User Settings Edit
  * @FilePath: \sverp\app\webApi\controller\Record.php
@@ -329,7 +329,6 @@ class Record
       $content['meche_num'] = $param['row']['mache_num'];
       $content['meche_name'] = $param['row']['mache_name'] . $param['cause']; //机器名和初步原因
       $phone = implode(',', $param['arr']);
-      Log::debug($content);
       if ($phone && $content['number'] && $content['line_num'] && $content['meche_num'] && $content['meche_name']) {
         $res = smsSend($phone, '文迪软件', 'SMS_207970725', $content);
         if ($res['Code'] === 'OK') {

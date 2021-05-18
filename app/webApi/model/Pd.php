@@ -2,7 +2,7 @@
 /*
  * @Date: 2021-04-29 13:03:41
  * @LastEditors: Mok.CH
- * @LastEditTime: 2021-05-18 11:32:49
+ * @LastEditTime: 2021-05-18 13:03:43
  * @FilePath: \sverp\app\webApi\model\Pd.php
  */
 namespace app\webApi\model;
@@ -125,11 +125,11 @@ class Pd
                     and ppq.OrdB_ID=pb.OrdB_ID 
                     and pb.Unit_id=eu.Unit_id 
                     $where_str
+                ORDER by
+                    sp.Sp_id DESC
             ";
-        Log::debug($SQL);
-        $q = $this->db->query($SQL);
-        if ($q)
-            $info = $q->fetchAll(PDO::FETCH_ASSOC);
+        
+        $info = $this->db->query($SQL)->fetchAll(PDO::FETCH_ASSOC);
         
         $count = count($info);
         //输出前处理编码，小数点等格式问题
