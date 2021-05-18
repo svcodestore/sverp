@@ -2,16 +2,17 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-04 13:57:28
- * @LastEditTime: 2020-12-24 14:14:12
- * @LastEditors: yanbuw1911
+ * @LastEditTime: 2021-05-18 13:45:36
+ * @LastEditors: Mok.CH
  * @Description: 
- * @FilePath: \backend\app\webApi\controller\Login.php
+ * @FilePath: \sverp\app\webApi\controller\Login.php
  */
 
 namespace app\webApi\controller;
 
-use app\webApi\model\Login as ModelLogin;
+use think\facade\Log;
 use app\webApi\model\User;
+use app\webApi\model\Login as ModelLogin;
 
 class Login
 {
@@ -44,8 +45,14 @@ class Login
                 $res[0]['black_api'] = array_unique($res[0]['black_api'], SORT_REGULAR);
             }
             $res = $res[0];
+            // 只用可以标识用户的字符段,以及一个登录变量,来产生token,缩小token的字节数 (875 => 329)
+            $token_res = [
+                'con_id' => $res['con_id'],
+                'con_name' => $res['con_name'],
+                'sue_last_login_time' => $res['sue_last_login_time']
+            ];
             $rtn['result'] = true;
-            $rtn['data']['token'] = authorizedToken($res);
+            $rtn['data']['token'] = authorizedToken($token_res);
             $rtn['data']['userinfo'] = $res;
             $rtn['data']['userMenus'] = (new User())->userAuthMenu($res['id']);
         }
