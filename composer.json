@@ -41,7 +41,8 @@
         },
         "psr-0": {
             "": "extend/"
-        }
+        },
+        "files": ["extend/Prodigy_DBF.php"]
     },
     "config": {
         "preferred-install": "dist"

@@ -4,7 +4,7 @@ declare(strict_types=1);
 /*
 * @Author: yanbuw1911
 * @Date: 2021-01-07 14:15:16
- * @LastEditTime: 2021-05-13 10:30:50
+ * @LastEditTime: 2021-05-18 13:09:50
  * @LastEditors: yanbuw1911
 * @Description:
  * @FilePath: /sverp/app/webApi/controller/Hrd.php
@@ -13,7 +13,7 @@ declare(strict_types=1);
 namespace app\webApi\controller;
 
 use app\webApi\model\Hrd as ModelHrd;
-use think\facade\Cache;
+use Prodigy_DBF;
 
 class Hrd
 {
@@ -243,5 +243,44 @@ class Hrd
         $rtn['result'] = (new ModelHrd())->handleKpiScopesOpt($opt);
 
         return json($rtn);
+    }
+
+    public function getStaffs()
+    {
+        $info = [];
+        if (PHP_OS_FAMILY === 'Windows') {
+            $path = '//192.168.123.252/data$/database/';
+
+            $fmt = function ($str) {
+                $s = str_replace(' ', '', @iconv('GBK', 'UTF-8', $str));
+                if (ord(substr($s, -1)) < 11) {
+                    return substr($s, 0, -1);
+                }
+
+                return  $s;
+            };
+
+            $handler = new Prodigy_DBF($path . 'employee.DBF', $path . 'employee.FPT');
+            while (($Record = $handler->GetNextRecord(true))) {
+
+                $row['positionRankCode'] = $Record['NBJB'];
+                $row['name'] = $fmt($Record['NAME']) === false ? '' : $fmt($Record['NAME']);
+                $row['dept'] =  $fmt($Record['DEPTS']) === false ? '' : $fmt($Record['DEPTS']);
+                $row['grp'] = $fmt($Record['GRP']) === false ? '' : $fmt($Record['GRP']);
+                $row['subGrp'] = $fmt($Record['GRPS']) === false ? '' : $fmt($Record['GRPS']);
+                $row['position'] = $fmt($Record['POSITIONS']) === false ? '' : $fmt($Record['POSITIONS']);
+                $row['isLeaveJob'] = $fmt($Record['RETIRETYPE']) === false ? '' : $fmt($Record['RETIRETYPE']);
+                $row['joinDate'] = $fmt($Record['ENTERDATE']) === false ? '' : $fmt($Record['ENTERDATE']);
+                $row['staffNo'] = $fmt($Record['WORKNO']) === false ? '' : $fmt($Record['WORKNO']);
+                // $row['born'] = $fmt($Record['BORN']);
+                // $row['education'] = $fmt($Record['DEGREE']);
+
+                if ($row['staffNo'] > 99 && $row['isLeaveJob'] === '在职') {
+                    $info[] = $row;
+                }
+            }
+        }
+
+        return json($info);
     }
 }
