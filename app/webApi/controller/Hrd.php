@@ -4,7 +4,7 @@ declare(strict_types=1);
 /*
 * @Author: yanbuw1911
 * @Date: 2021-01-07 14:15:16
- * @LastEditTime: 2021-05-18 13:21:57
+ * @LastEditTime: 2021-05-18 15:05:45
  * @LastEditors: yanbuw1911
 * @Description:
  * @FilePath: /sverp/app/webApi/controller/Hrd.php
@@ -249,6 +249,7 @@ class Hrd
     {
         $info = [];
         if (PHP_OS_FAMILY === 'Windows') {
+            $loc = input('post.loc');
             $path = '//192.168.123.252/data$/database/';
 
             $fmt = function ($str) {
@@ -276,8 +277,19 @@ class Hrd
                 // $row['born'] = $fmt($Record['BORN']);
                 // $row['education'] = $fmt($Record['DEGREE']);
 
-                if ($row['staffNo'] > 99 && $row['isLeaveJob'] === '在职') {
-                    $info[] = $row;
+                if ($row['isLeaveJob'] === '在职') {
+                    switch ($loc) {
+                        case 'SV':
+                            if ($row['staffNo'] > 99) {
+                                $info[] = $row;
+                            }
+                            break;
+                        case 'JS':
+                            if (!is_numeric($row['staffNo']) && substr($row['staffNo'], 0, 2) === 'JS') {
+                                $info[] = $row;
+                            }
+                            break;
+                    }
                 }
             }
         }

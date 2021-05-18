@@ -2,7 +2,7 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-04 08:50:09
- * @LastEditTime: 2021-05-18 13:20:47
+ * @LastEditTime: 2021-05-18 15:06:17
  * @LastEditors: yanbuw1911
  * @Description: 
  * @FilePath: /sverp/app/webApi/api/Test.php
@@ -384,6 +384,8 @@ English / 正體中文 123 Chinese 测试 测试测
 
     public function dbfreader()
     {
+        $loc = input('post.loc');
+
         $fmt = function ($str) {
             $s = str_replace(' ', '', @iconv('GBK', 'UTF-8', $str));
             $lastByte = substr($s, -1);
@@ -419,9 +421,19 @@ English / 正體中文 123 Chinese 测试 测试测
             // }
             // print_r('<br>');
 
-            if ($row['staffNo'] > 99 && $row['isLeaveJob'] === '在职') {
-
-                $info[] = $row;
+            if ($row['isLeaveJob'] === '在职') {
+                switch ($loc) {
+                    case 'SV':
+                        if ($row['staffNo'] > 99) {
+                            $info[] = $row;
+                        }
+                        break;
+                    case 'JS':
+                        if (!is_numeric($row['staffNo']) && substr($row['staffNo'], 0, 2) === 'JS') {
+                            $info[] = $row;
+                        }
+                        break;
+                }
             }
         }
 
