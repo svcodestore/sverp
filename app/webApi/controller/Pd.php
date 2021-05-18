@@ -2,7 +2,7 @@
 /*
  * @Date: 2021-04-29 13:01:09
  * @LastEditors: Mok.CH
- * @LastEditTime: 2021-04-30 08:21:34
+ * @LastEditTime: 2021-05-18 09:42:53
  * @FilePath: \sverp\app\webApi\controller\Pd.php
  */
 namespace app\webApi\controller;
@@ -62,7 +62,8 @@ class Pd
 
         //制单人
         if (input('cru') != 'nothing') {
-            $get_cru = mb_convert_encoding(input('cru'), 'GBK', 'utf-8');
+            // $get_cru = mb_convert_encoding(input('cru'), 'GBK', 'utf-8');
+            $get_cru =input('cru');
             $where_str .= " and  pa.CRU='" . $get_cru . "' ";
         }
 
