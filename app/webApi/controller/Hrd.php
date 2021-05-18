@@ -4,7 +4,7 @@ declare(strict_types=1);
 /*
 * @Author: yanbuw1911
 * @Date: 2021-01-07 14:15:16
- * @LastEditTime: 2021-05-18 13:09:50
+ * @LastEditTime: 2021-05-18 13:21:57
  * @LastEditors: yanbuw1911
 * @Description:
  * @FilePath: /sverp/app/webApi/controller/Hrd.php
@@ -253,7 +253,8 @@ class Hrd
 
             $fmt = function ($str) {
                 $s = str_replace(' ', '', @iconv('GBK', 'UTF-8', $str));
-                if (ord(substr($s, -1)) < 11) {
+                $lastByte = substr($s, -1);
+                if (ord($lastByte) < 10 || ord($lastByte) === 92) {
                     return substr($s, 0, -1);
                 }
 
