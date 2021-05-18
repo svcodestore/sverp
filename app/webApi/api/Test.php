@@ -2,7 +2,7 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-04 08:50:09
- * @LastEditTime: 2021-05-18 13:08:20
+ * @LastEditTime: 2021-05-18 13:20:47
  * @LastEditors: yanbuw1911
  * @Description: 
  * @FilePath: /sverp/app/webApi/api/Test.php
@@ -386,7 +386,8 @@ English / 正體中文 123 Chinese 测试 测试测
     {
         $fmt = function ($str) {
             $s = str_replace(' ', '', @iconv('GBK', 'UTF-8', $str));
-            if (ord(substr($s, -1)) < 11) {
+            $lastByte = substr($s, -1);
+            if (ord($lastByte) < 10 || ord($lastByte) === 92) {
                 return substr($s, 0, -1);
             }
 
