@@ -2,7 +2,7 @@
 /*
  * @Date: 2021-04-29 13:03:41
  * @LastEditors: Mok.CH
- * @LastEditTime: 2021-05-18 10:58:39
+ * @LastEditTime: 2021-05-18 11:32:49
  * @FilePath: \sverp\app\webApi\model\Pd.php
  */
 namespace app\webApi\model;
@@ -30,7 +30,7 @@ class Pd
     {
         $cru_info = $this->db->query("select CRU from pmPOA group by CRU")->fetchAll(PDO::FETCH_ASSOC);
         foreach ($cru_info as $k=>$v) {
-            $cru_info[$k]['CRU'] = mb_convert_encoding($v['CRU'], 'utf-8', 'gb2312');
+            $cru_info[$k]['CRU'] = mb_convert_encoding($v['CRU'], 'utf-8', 'GBK');
         }
         return $cru_info;
     }
@@ -76,8 +76,8 @@ class Pd
 
         //制单人
         if ($search_options['cru'] != 'nothing') {
-            $get_cru = mb_convert_encoding(input('cru'), 'GBK', 'utf-8');
-            $get_cru =$search_options['cru'];
+            $get_cru = mb_convert_encoding($search_options['cru'], 'GBK', 'utf-8');
+            // $get_cru =$search_options['cru'];
             $where_str .= " and  pa.CRU='" . $get_cru . "' ";
         }
 
@@ -126,8 +126,10 @@ class Pd
                     and pb.Unit_id=eu.Unit_id 
                     $where_str
             ";
-
-        $info = $this->db->query($SQL)->fetchAll(PDO::FETCH_ASSOC);
+        Log::debug($SQL);
+        $q = $this->db->query($SQL);
+        if ($q)
+            $info = $q->fetchAll(PDO::FETCH_ASSOC);
         
         $count = count($info);
         //输出前处理编码，小数点等格式问题
