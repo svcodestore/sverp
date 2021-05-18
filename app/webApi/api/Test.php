@@ -2,7 +2,7 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-04 08:50:09
- * @LastEditTime: 2021-05-17 08:32:01
+ * @LastEditTime: 2021-05-18 15:06:17
  * @LastEditors: yanbuw1911
  * @Description: 
  * @FilePath: /sverp/app/webApi/api/Test.php
@@ -13,6 +13,8 @@ namespace app\webApi\api;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 use mysqli;
+use PDO;
+use Prodigy_DBF;
 use ReflectionClass;
 use think\facade\Db;
 
@@ -36,42 +38,6 @@ class Test
     public function getIp()
     {
         dump($_SERVER);
-    }
-
-    public function delRedis()
-    {
-        $redis = new \Redis();
-        $redis->connect('127.0.0.1', 6379);
-        echo "Connection to server successfully";
-        // //存储数据到列表中
-        // $redis->lpush("tutorial-list", "Redis");
-        // $redis->lpush("tutorial-list", "Mongodb");
-        // $redis->lpush("tutorial-list", "Mysql");
-        // // 获取存储的数据并输出
-        // $arList = $redis->lrange("tutorial-list", 0, -1);
-        $listLen = $redis->lLen('tutorial-list');
-        print_r($listLen);
-        print_r(PHP_EOL);
-        $redis->del('tpm-notifier');
-        print_r(PHP_EOL);
-        print_r($listLen);
-
-        // print_r($arList);
-    }
-
-    public function setRedis()
-    {
-        $redis = new \Redis();
-        $redis->connect('127.0.0.1', 6379);
-        echo "Connection to server successfully";
-        // //存储数据到列表中
-        // $redis->lpush("tutorial-list", "Redis");
-        // $redis->lpush("tutorial-list", "Mongodb");
-        // $redis->lpush("tutorial-list", "Mysql");
-        // 获取存储的数据并输出
-        $arList = $redis->lrange("tpm-notifier", 0, -1);
-
-        print_r($arList);
     }
 
     public function setAutoSchedulePdo()
@@ -106,41 +72,7 @@ class Test
 
     public function test()
     {
-        // $dbh2 = new \PDO("mysql:host=127.0.0.1;dbname=starvc_homedb", 'root', 'root');
-        // $res2 = $dbh->query("SHOW TABLES")->fetchAll(\PDO::FETCH_ASSOC);
-        // dd($res2);
-        // $res2 = Db::table('starvc_homedb.prodlibmap_prdschd_initpdo2phs')->select();
-        // $data = array_map(function ($e) {
-        //     return [
-        //         'map_ppi_prd_item' => $e['facno'],
-        //         'map_ppi_seq' => $e['item'],
-        //         'map_ppi_phsid' => $e['jdno'],
-        //         'map_ppi_phs' => $e['jdname'],
-        //         'map_ppi_cost_time' => (int) $e['price'],
-        //         'map_ppi_phs_desc' => $e['descn'],
-        //         'map_ppi_deadtime' => $e['worktimesh'],
-        //         'map_ppi_ismaster' => $e['iszf'] != '2' ? 1 : 0,
-        //     ];
-        // }, $res);
-        // dd(Db::name('starvc_homedb.prodlibmap_prdschd_initpdo2phs')->insertAll($data));
-        // dd($data);
-
-        // dd(__CLASS__);
-        // dd(call_user_func_array([__CLASS__, 'arr'], [1, 2]));
-
-
-        $area = array(
-            array('id' => 1, 'name' => '安徽', 'parent' => 0),
-            array('id' => 2, 'name' => '北京', 'parent' => 0),
-            array('id' => 3, 'name' => '海淀', 'parent' => 2),
-            array('id' => 4, 'name' => '中关村', 'parent' => 3),
-            array('id' => 5, 'name' => '合肥', 'parent' => 1),
-            array('id' => 6, 'name' => '上地', 'parent' => 3),
-            array('id' => 7, 'name' => '河北', 'parent' => 0),
-            array('id' => 8, 'name' => '石家庄', 'parent' => 7)
-        );
-
-        return json($area);
+        var_dump(class_exists(\Redis::class));
     }
 
     public function dompdf()
@@ -164,11 +96,6 @@ English / 正體中文 123 Chinese 测试 测试测
         $dompdf->render();
         $dompdf->stream("sample.pdf", array("Attachment" => 0));
         exit;
-    }
-
-    public function arr($a, $b)
-    {
-        return $a + $b;
     }
 
     /**
@@ -455,24 +382,14 @@ English / 正體中文 123 Chinese 测试 测试测
         dd(Db::table('commonlib_position_rank')->insertAll($rows));
     }
 
-    public function getWinFile()
-    {
-        $add = '//192.168.123.252/data$/database/employee.DBF';
-        $e = "Driver={Microsoft Visual FoxPro Driver};SourceType=DBf;SourceDB=" . $add . ";Exclusive=NO;collate=Machine;NULL=NO;DELETED=NO;BACKGROUNDFETCH=NO;";
-        $odbc = odbc_connect($e, '', '');
-        // echo $add;
-        // $query = "select * from " . $add . ";";
-        // $result_id = odbc_do($odbc, $query);
-        // odbc_result_all($result_id, "border=1 width=50%");
-        dump($odbc);
-        odbc_close($odbc);
-    }
-
     public function dbfreader()
     {
+        $loc = input('post.loc');
+
         $fmt = function ($str) {
             $s = str_replace(' ', '', @iconv('GBK', 'UTF-8', $str));
-            if (ord(substr($s, -1)) < 10) {
+            $lastByte = substr($s, -1);
+            if (ord($lastByte) < 10 || ord($lastByte) === 92) {
                 return substr($s, 0, -1);
             }
 
@@ -504,178 +421,22 @@ English / 正體中文 123 Chinese 测试 测试测
             // }
             // print_r('<br>');
 
-            if ($row['staffNo'] > 99 && $row['isLeaveJob'] === '在职') {
-
-                $info[] = $row;
+            if ($row['isLeaveJob'] === '在职') {
+                switch ($loc) {
+                    case 'SV':
+                        if ($row['staffNo'] > 99) {
+                            $info[] = $row;
+                        }
+                        break;
+                    case 'JS':
+                        if (!is_numeric($row['staffNo']) && substr($row['staffNo'], 0, 2) === 'JS') {
+                            $info[] = $row;
+                        }
+                        break;
+                }
             }
         }
 
         return json($info);
-    }
-}
-
-
-
-
-
-class Prodigy_DBF
-{
-    private $Filename, $DB_Type, $DB_Update, $DB_Records, $DB_FirstData, $DB_RecordLength, $DB_Flags, $DB_CodePageMark, $DB_Fields, $FileHandle, $FileOpened;
-    private $Memo_Handle, $Memo_Opened, $Memo_BlockSize;
-
-    private function Initialize()
-    {
-
-        if ($this->FileOpened) {
-            fclose($this->FileHandle);
-        }
-
-        if ($this->Memo_Opened) {
-            fclose($this->Memo_Handle);
-        }
-
-        $this->FileOpened = false;
-        $this->FileHandle = NULL;
-        $this->Filename = NULL;
-        $this->DB_Type = NULL;
-        $this->DB_Update = NULL;
-        $this->DB_Records = NULL;
-        $this->DB_FirstData = NULL;
-        $this->DB_RecordLength = NULL;
-        $this->DB_CodePageMark = NULL;
-        $this->DB_Flags = NULL;
-        $this->DB_Fields = array();
-
-        $this->Memo_Handle = NULL;
-        $this->Memo_Opened = false;
-        $this->Memo_BlockSize = NULL;
-    }
-
-    public function __construct($Filename, $MemoFilename = NULL)
-    {
-        $this->Prodigy_DBF($Filename, $MemoFilename);
-    }
-
-    public function Prodigy_DBF($Filename, $MemoFilename = NULL)
-    {
-        $this->Initialize();
-        $this->OpenDatabase($Filename, $MemoFilename);
-    }
-
-    public function OpenDatabase($Filename, $MemoFilename = NULL)
-    {
-        $Return = false;
-        $this->Initialize();
-
-        $this->FileHandle = fopen($Filename, "r");
-        if ($this->FileHandle) {
-            // DB Open, reading headers
-            $this->DB_Type = dechex(ord(fread($this->FileHandle, 1)));
-            $LUPD = fread($this->FileHandle, 3);
-            $this->DB_Update = ord($LUPD[0]) . "/" . ord($LUPD[1]) . "/" . ord($LUPD[2]);
-            $Rec = unpack("V", fread($this->FileHandle, 4));
-            $this->DB_Records = $Rec[1];
-            $Pos = fread($this->FileHandle, 2);
-            $this->DB_FirstData = (ord($Pos[0]) + ord($Pos[1]) * 256);
-            $Len = fread($this->FileHandle, 2);
-            $this->DB_RecordLength = (ord($Len[0]) + ord($Len[1]) * 256);
-            fseek($this->FileHandle, 28); // Ignoring "reserved" bytes, jumping to table flags
-            $this->DB_Flags = dechex(ord(fread($this->FileHandle, 1)));
-            $this->DB_CodePageMark = ord(fread($this->FileHandle, 1));
-            fseek($this->FileHandle, 2, SEEK_CUR);    // Ignoring next 2 "reserved" bytes
-
-            // Now reading field captions and attributes
-            while (!feof($this->FileHandle)) {
-
-                // Checking for end of header
-                if (ord(fread($this->FileHandle, 1)) == 13) {
-                    break;  // End of header!
-                } else {
-                    // Go back
-                    fseek($this->FileHandle, -1, SEEK_CUR);
-                }
-
-                $Field["Name"] = trim(fread($this->FileHandle, 11));
-                $Field["Type"] = fread($this->FileHandle, 1);
-                fseek($this->FileHandle, 4, SEEK_CUR);  // Skipping attribute "displacement"
-                $Field["Size"] = ord(fread($this->FileHandle, 1));
-                fseek($this->FileHandle, 15, SEEK_CUR); // Skipping any remaining attributes
-                $this->DB_Fields[] = $Field;
-            }
-
-            // Setting file pointer to the first record
-            fseek($this->FileHandle, $this->DB_FirstData);
-
-            $this->FileOpened = true;
-
-            // Open memo file, if exists
-            if (!empty($MemoFilename) and file_exists($MemoFilename) and preg_match("%^(.+).fpt$%i", $MemoFilename)) {
-                $this->Memo_Handle = fopen($MemoFilename, "r");
-                if ($this->Memo_Handle) {
-                    $this->Memo_Opened = true;
-
-                    // Getting block size
-                    fseek($this->Memo_Handle, 6);
-                    $Data = unpack("n", fread($this->Memo_Handle, 2));
-                    $this->Memo_BlockSize = $Data[1];
-                }
-            }
-        }
-
-        return $Return;
-    }
-
-    public function GetNextRecord($FieldCaptions = false)
-    {
-        $Return = NULL;
-        $Record = array();
-
-        if (!$this->FileOpened) {
-            $Return = false;
-        } elseif (feof($this->FileHandle)) {
-            $Return = NULL;
-        } else {
-            // File open and not EOF
-            fseek($this->FileHandle, 1, SEEK_CUR);  // Ignoring DELETE flag
-            foreach ($this->DB_Fields as $Field) {
-                $RawData = fread($this->FileHandle, $Field["Size"]);
-                // Checking for memo reference
-                if ($Field["Type"] == "M" and $Field["Size"] == 4 and !empty($RawData)) {
-                    // Binary Memo reference
-                    $Memo_BO = unpack("V", $RawData);
-                    if ($this->Memo_Opened and $Memo_BO != 0) {
-                        fseek($this->Memo_Handle, $Memo_BO[1] * $this->Memo_BlockSize);
-                        $Type = unpack("N", fread($this->Memo_Handle, 4));
-                        if ($Type[1] == "1") {
-                            $Len = unpack("N", fread($this->Memo_Handle, 4));
-                            $Value = trim(fread($this->Memo_Handle, $Len[1]));
-                        } else {
-                            // Pictures will not be shown
-                            $Value = "{BINARY_PICTURE}";
-                        }
-                    } else {
-                        $Value = "{NO_MEMO_FILE_OPEN}";
-                    }
-                } else {
-                    $Value = trim($RawData);
-                }
-
-                if ($FieldCaptions) {
-                    $Record[$Field["Name"]] = $Value;
-                } else {
-                    $Record[] = $Value;
-                }
-            }
-
-            $Return = $Record;
-        }
-
-        return $Return;
-    }
-
-    function __destruct()
-    {
-        // Cleanly close any open files before destruction
-        $this->Initialize();
     }
 }

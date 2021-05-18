@@ -4,7 +4,7 @@ declare(strict_types=1);
 /*
 * @Author: yanbuw1911
 * @Date: 2021-01-07 14:18:07
- * @LastEditTime: 2021-05-13 10:31:11
+ * @LastEditTime: 2021-05-18 11:18:11
  * @LastEditors: yanbuw1911
 * @Description:
  * @FilePath: /sverp/app/webApi/api/Hrd.php
@@ -145,5 +145,10 @@ class Hrd extends BaseController
     public function saveKpiScopesOpt()
     {
         return (new ControllerHrd())->saveKpiScopesOpt();
+    }
+
+    public function getStaffs()
+    {
+        return (new ControllerHrd())->getStaffs();
     }
 }
