@@ -1,9 +1,9 @@
 <?php
 /*
  * @Date: 2020-12-28 14:21:43
- * @LastEditors: yanbuw1911
- * @LastEditTime: 2021-05-17 08:37:07
- * @FilePath: /sverp/app/common.php
+ * @LastEditors: Mok.CH
+ * @LastEditTime: 2021-05-18 10:00:34
+ * @FilePath: \sverp\app\common.php
  */
 // 应用公共文件
 #require_once '../vendor/autoload.php';

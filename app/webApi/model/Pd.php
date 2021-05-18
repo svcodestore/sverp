@@ -2,7 +2,7 @@
 /*
  * @Date: 2021-04-29 13:03:41
  * @LastEditors: Mok.CH
- * @LastEditTime: 2021-05-13 08:37:21
+ * @LastEditTime: 2021-05-18 10:37:01
  * @FilePath: \sverp\app\webApi\model\Pd.php
  */
 namespace app\webApi\model;
@@ -17,7 +17,12 @@ class Pd
     public function __construct()
     {
         // $this->db = new PDO('odbc:Driver={SQL Server};Server=192.168.123.245,1433;Database=sdwx_sj', 'sa', 'Sql_2008');
-        $this->db = new PDO('sqlsrv:server=192.168.123.245,1433;Database=sdwx_sj;', 'sa', 'Sql_2008');
+        
+        $this->db = pdosqlsrv([
+            'username' => 'sa',
+            'password' => 'Sql_2008',
+            'dsn' => 'sqlsrv:server=192.168.123.245,1433;Database=sdwx_sj;'
+        ]);
     }
 
     public function getCruInfo()
@@ -29,9 +34,67 @@ class Pd
         return $cru_info;
     }
 
-    public function getOrderList(string $where_str)
+    public function getOrderList($search_options = [])
     {
-        
+        $sign_status = $search_options['sign_status'];
+        $where_str = '';
+        if ($sign_status == '2') {
+            $where_str = " and  (pa.State = '0' or pa.State = '1')  ";
+        } else {
+            //订单状态条件
+            $where_str = " and  pa.State = '" . $sign_status . "'  ";
+        }
+        $commit_status = $search_options['commit_status'];
+        if ($commit_status == '2') {
+            $where_str .= " and  (pa.LkState = '0' or pa.LkState = '1')  ";
+        } else {
+            $where_str .= " and  pa.LkState = '$commit_status'  ";
+        }
+
+        //时间限制条件
+        if ($search_options['pro_time_star'] and $search_options['pro_time_end']) {
+            $pro_time_star = $search_options['pro_time_star'];
+            $pro_time_end = $search_options['pro_time_end'];
+            $where_str .= " and pb.Due_Date >= '" . $pro_time_star . "'  and  pb.Due_Date <=  '" . $pro_time_end . "' ";
+        }
+        if ($search_options['sg_time_star'] and $search_options['sg_time_end']) {
+            $sg_time_star = $search_options['sg_time_star'];
+            $sg_time_end = $search_options['sg_time_end'];
+            $where_str .= " and  pb.SG_ASK_DATE >= '" . $sg_time_star . "'  and  pb.SG_ASK_DATE <=  '" . $sg_time_end . "' ";
+        }
+
+        $complay = $search_options['comply_name'];
+        //公司条件
+        if ($complay != 'nothing') {
+            if ($complay === 'A020') {
+                $where_str .= " and  (pa.PC_ID='$complay' or pa.PC_ID='' or pa.PC_ID is null) ";
+            } else {
+                $where_str .= " and  pa.PC_ID='" . $search_options['comply_name'] . "' ";
+            }
+        }
+
+        //制单人
+        if ($search_options['cru'] != 'nothing') {
+            // $get_cru = mb_convert_encoding(input('cru'), 'GBK', 'utf-8');
+            $get_cru =$search_options['cru'];
+            $where_str .= " and  pa.CRU='" . $get_cru . "' ";
+        }
+
+        //采购单号条件
+        if ($search_options['Bt_No']) {
+            $where_str .= " and pa.Bt_No = '" . $search_options['Bt_No'] . "' ";
+        }
+
+        //请购单号条件
+        if ($search_options['Ask_Nos']) {
+            $where_str .= " and  pb.Ask_Nos like '%" . $search_options['Ask_Nos'] . "%' ";
+        }
+
+        // 物料名称关键词搜索
+        if ($search_options['sp_catName']) {
+            $where_str .= " and sp.Sp_Name like '%" . $search_options['sp_catName']. "%' ";
+        }
+
         $SQL = "SELECT TOP 100
                     pa.Bt_No,Sp_No,sp.Sp_Name,pb.P_Qty,pa.Bt_Date,pb.Due_Date,
                     kh.Kh_Name,pb.KhCfg_Date,pb.Khraw_date,ppq.TR_Qty,ppq.In_Qty,
@@ -62,7 +125,6 @@ class Pd
                     $where_str
             ";
 
-        Log::Debug($SQL);
         $info = $this->db->query($SQL)->fetchAll(PDO::FETCH_ASSOC);
         
         $count = count($info);
