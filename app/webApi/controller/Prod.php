@@ -2,7 +2,7 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-18 15:00:44
- * @LastEditTime: 2021-05-21 07:47:33
+ * @LastEditTime: 2021-05-24 16:55:13
  * @LastEditors: yanbuw1911
  * @Description: 
  * @FilePath: /sverp/app/webApi/controller/Prod.php
@@ -243,7 +243,7 @@ class Prod
     {
         $params         = $this->getAutoSchdParam();
         $algorithm = new ProdAutoSchd($params);
-        // dd($algorithm->prodList);
+
         return json([
             'result' => true,
             'data' => $algorithm->prodList
