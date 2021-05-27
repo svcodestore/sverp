@@ -3,7 +3,7 @@
 * @Author: yanbuw1911
 * @Date: 2021-05-20 09:49:01
  * @LastEditors: yanbuw1911
- * @LastEditTime: 2021-05-25 11:30:30
+ * @LastEditTime: 2021-05-27 11:19:11
 * @Description: Do not edit
  * @FilePath: /sverp/app/algorithm/ProdAutoSchd.php
 */
@@ -287,6 +287,7 @@ class ProdAutoSchd
      */
     private function schedule(int $phsSeq, array &$beforeOnlineWorkshop, array &$afterOnlineWorkshop)
     {
+        // 计算工站单等分所需时间和全部生产所需时间
         $needtime = function (int $total, int $single) use ($phsSeq): array {
             switch ($this->schdMode) {
                 case 'SELF_COST':
@@ -310,6 +311,7 @@ class ProdAutoSchd
 
             return [(int)$allPhaseNeed, (int)$singlePhaseNeed];
         };
+        // 查找车间上线工站
         $workshopOnline = function (array $phases): array {
             foreach ($phases as $p) {
                 if ($p['map_ppi_phsid'] === '005') {
@@ -319,6 +321,7 @@ class ProdAutoSchd
 
             return [];
         };
+        // 计算工站开始时间，加入休息日
         $startTimeAddArrange = function (int &$timestamp, $isReverse = false): void {
             foreach ($this->arrangeDays as $arrangeDay) {
                 if (
@@ -340,6 +343,7 @@ class ProdAutoSchd
                 }
             }
         };
+        // 计算工站完成时间，加入休息日
         $compTimeArrange = function (int &$timestamp, int $startTime): void {
             foreach ($this->arrangeDays as $arrangeDay) {
                 if (
@@ -366,7 +370,15 @@ class ProdAutoSchd
             (int)($this->prodList[$phsSeq]['ppi_po_qty']
                 ?: $this->prodList[$phsSeq]['ppi_expected_qty']);
 
+        /**
+         *  将生产单的每一单以车间上线工站为划分点，分成车间上线之前的工站，和车间上线之后的工站；
+         *  车间上线之前的工站的开始时间要是上一工站的全部生产所需时间，车间上线之后的工站的开始时间是上一工站的等分生产所需时间
+         *  生产单的第一单，每一个工站一个接着一个顺序生产。之后的每一单，车间上线之前的工站向前计算开始时间
+         */
+
+        // 当月生产单第一单
         if ($phsSeq === 0) {
+            // 处理车间上线之前工站
             foreach ($beforeOnlineWorkshop as $k => $p) {
                 list(
                     $allPhaseNeed,
@@ -376,21 +388,32 @@ class ProdAutoSchd
                     (int)$p['map_ppi_cost_time']
                 );
                 if ($k === 0) {
+                    // 第一工站为当月生产开始时间
                     $start = $this->schStartAt;
                 } else {
+                    // 第一工站之后的工站开始时间是上一工站的完成时间
                     $start = strtotime(
                         $beforeOnlineWorkshop[$k - 1]['ppi_phs_complete']
                     );
                 }
+                // 有前置时间，则减去前置时间
+                if ((int)$p['map_ppi_aheadtime'] > 0) {
+                    $start -= (int)$p['map_ppi_aheadtime'];
+                    // 减去前置时间有可能在工作时间之外或者行事历设置之外
+                    $start = $this->handlePhaseStartTimeReverse($start);
+                }
+                // 当开始时间加入工站等分生产耗时，有可能在工作时间之外或者行事历设置之外
                 $actualStart = $this->handlePhaseStartTime(
                     $start
                 );
+                // 算入休息日
                 $startTimeAddArrange($actualStart);
                 $beforeOnlineWorkshop[$k]['ppi_phs_start'] =
                     date(
                         self::DATETIME_FORMAT,
                         $actualStart
                     );
+                // 如果有外发时间，完成时间则只计算外发时间
                 if ((int)$p['map_ppi_outime'] > 0) {
                     $complete =
                         $start
@@ -399,14 +422,15 @@ class ProdAutoSchd
                     $complete =
                         $start
                         + $allPhaseNeed
-                        + (int)$p['map_ppi_deadtime']
-                        + (int)$p['map_ppi_aheadtime'];
+                        + (int)$p['map_ppi_deadtime'];
                 }
+                // 有可能在工作时间之外或者行事历设置之外
                 $actualComplete =
                     $this->handlePhaseCompleteTime(
                         $start,
                         $complete
                     );
+                // 算入休息日
                 $compTimeArrange($actualComplete, $actualStart);
                 $beforeOnlineWorkshop[$k]['ppi_phs_complete']
                     =  date(
@@ -415,6 +439,7 @@ class ProdAutoSchd
                     );
             }
 
+            // 处理车间上线之后工站
             foreach ($afterOnlineWorkshop as $k => $p) {
                 list($allPhaseNeed, $singlePhaseNeed)
                     = $needtime(
@@ -433,6 +458,13 @@ class ProdAutoSchd
                         )
                         + $singlePhaseNeed;
                 }
+                // 有前置时间，则减去前置时间
+                if ((int)$p['map_ppi_aheadtime'] > 0) {
+                    $start -= (int)$p['map_ppi_aheadtime'];
+                    // 减去前置时间有可能在工作时间之外或者行事历设置之外
+                    $start = $this->handlePhaseStartTimeReverse($start);
+                }
+                // 当开始时间加入工站等分生产耗时，有可能在工作时间之外或者行事历设置之外
                 $actualStart = $this->handlePhaseStartTime($start);
                 $startTimeAddArrange($actualStart);
                 $afterOnlineWorkshop[$k]['ppi_phs_start'] = date(
@@ -447,8 +479,7 @@ class ProdAutoSchd
                     $complete
                         = $start
                         + $allPhaseNeed
-                        + (int)$p['map_ppi_deadtime']
-                        + (int)$p['map_ppi_aheadtime'];
+                        + (int)$p['map_ppi_deadtime'];
                 }
                 $actualComplete =
                     $this->handlePhaseCompleteTime(
@@ -462,7 +493,7 @@ class ProdAutoSchd
                 );
             }
         } else {
-
+            // 处理车间上线之前工站
             $index =
                 count($beforeOnlineWorkshop) - 1;
             while (isset($beforeOnlineWorkshop[$index])) {
@@ -528,6 +559,7 @@ class ProdAutoSchd
                 $index--;
             }
 
+            // 处理车间上线之后工站
             foreach ($afterOnlineWorkshop as $k => $p) {
                 list(
                     $allPhaseNeed,
@@ -538,9 +570,7 @@ class ProdAutoSchd
                 );
                 if ($k === 0) {
                     $start = strtotime(
-                        $workshopOnline(
-                            $this->prodList[$phsSeq - 1]['phases']
-                        )['ppi_phs_complete']
+                        $beforeOnlineWorkshop[count($beforeOnlineWorkshop) - 1]['ppi_phs_complete']
                     );
                 } else {
                     $start =
@@ -548,6 +578,12 @@ class ProdAutoSchd
                             $afterOnlineWorkshop[$k - 1]['ppi_phs_start']
                         )
                         + $singlePhaseNeed;
+                }
+                // 有前置时间，则减去前置时间
+                if ((int)$p['map_ppi_aheadtime'] > 0) {
+                    $start -= (int)$p['map_ppi_aheadtime'];
+                    // 减去前置时间有可能在工作时间之外或者行事历设置之外
+                    $start = $this->handlePhaseStartTimeReverse($start);
                 }
                 $actualStart = $this->handlePhaseStartTime($start);
                 $startTimeAddArrange($actualStart);
@@ -564,8 +600,7 @@ class ProdAutoSchd
                     $complete =
                         $start
                         + $allPhaseNeed
-                        + (int)$p['map_ppi_deadtime']
-                        + (int)$p['map_ppi_aheadtime'];
+                        + (int)$p['map_ppi_deadtime'];
                 }
                 $actualComplete =
                     $this->handlePhaseCompleteTime(
