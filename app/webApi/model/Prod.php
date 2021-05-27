@@ -2,7 +2,7 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-18 14:56:05
- * @LastEditTime: 2021-05-17 08:40:22
+ * @LastEditTime: 2021-05-27 10:10:53
  * @LastEditors: yanbuw1911
  * @Description: 生管部模型
  * @FilePath: /sverp/app/webApi/model/Prod.php
@@ -137,7 +137,7 @@ class Prod
                 'map_ppi_cost_time' => (int) $e['price'],
                 'map_ppi_deadtime' => $e['worktimesh'],
                 'map_ppi_aheadtime' => $e['pricez'],
-                'map_ppi_outime' => $e['pricef'],
+                'map_ppi_outime' => $e['fwtime'],
             ];
         }, $toBeSyncData);
         $result = Db::name('starvc_homedb.prodlibmap_prdschd_initpdo2phs')->insertAll($data);
