@@ -3,7 +3,7 @@
 * @Author: yanbuw1911
 * @Date: 2021-05-20 09:49:01
  * @LastEditors: yanbuw1911
- * @LastEditTime: 2021-05-27 11:19:11
+ * @LastEditTime: 2021-05-31 08:29:55
 * @Description: Do not edit
  * @FilePath: /sverp/app/algorithm/ProdAutoSchd.php
 */
@@ -803,14 +803,22 @@ class ProdAutoSchd
         $eveningWorkDatetimeStop    = strtotime("$computeStartDate $eveStop");
 
         $phaseActualStartAt = $computeStartAt;
+        // 当在下午休息时间中，减去休息时间
         if ($phaseActualStartAt < $eveningWorkDatetimeStart && $phaseActualStartAt > $afternoonWorkDatetimeStop) {
             $phaseActualStartAt -= $aftRest;
         }
+        // 当在中午休息时间中，减去休息时间
         if ($phaseActualStartAt < $afternoonWorkDatetimeStart && $phaseActualStartAt > $morningWorkDatetimeStop) {
             $phaseActualStartAt -= $morRest;
         }
+        // 当在早上上班时间之前
         if ($phaseActualStartAt < $morningWorkDatetimeStart && $phaseActualStartAt > $eveningWorkDatetimeStop - self::DAY_SECONDS) {
             $phaseActualStartAt = $eveningWorkDatetimeStop - self::DAY_SECONDS - ($morningWorkDatetimeStart - $phaseActualStartAt);
+            $phaseActualStartAt = $this->handlePhaseStartTimeReverse($phaseActualStartAt);
+        }
+        // 当在晚上下班时间之后
+        if ($phaseActualStartAt > $eveningWorkDatetimeStop && $phaseActualStartAt < $morningWorkDatetimeStart + self::DAY_SECONDS) {
+            $phaseActualStartAt = $eveningWorkDatetimeStop - ($phaseActualStartAt - $eveningWorkDatetimeStop);
             $phaseActualStartAt = $this->handlePhaseStartTimeReverse($phaseActualStartAt);
         }
 
