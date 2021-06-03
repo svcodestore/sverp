@@ -4,7 +4,7 @@ declare(strict_types=1);
 /*
 * @Author: yanbuw1911
 * @Date: 2021-01-07 14:15:16
- * @LastEditTime: 2021-05-18 15:05:45
+ * @LastEditTime: 2021-05-31 13:37:52
  * @LastEditors: yanbuw1911
 * @Description:
  * @FilePath: /sverp/app/webApi/controller/Hrd.php
@@ -295,5 +295,13 @@ class Hrd
         }
 
         return json($info);
+    }
+
+    public function getKpis()
+    {
+        $rtn['result'] = true;
+        $rtn['data'] = (new ModelHrd)->kpis();
+
+        return json($rtn);
     }
 }

@@ -4,7 +4,7 @@ declare(strict_types=1);
 /*
 * @Author: yanbuw1911
 * @Date: 2021-01-07 14:07:28
- * @LastEditTime: 2021-05-13 10:29:35
+ * @LastEditTime: 2021-05-31 13:32:23
  * @LastEditors: yanbuw1911
 * @Description:
  * @FilePath: /sverp/app/webApi/model/Hrd.php
@@ -438,5 +438,13 @@ class Hrd
         $t = 'commonlib_kpi_scope';
 
         return Common::handleOpt($t, $opt);
+    }
+
+    public function kpis()
+    {
+        $t = 'hrdlib_kpi_home';
+        $res = Db::table($t)->select()->toArray();
+
+        return $res;
     }
 }
