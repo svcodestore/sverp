@@ -2,10 +2,10 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-18 15:00:44
- * @LastEditTime: 2021-05-25 11:30:49
+ * @LastEditTime: 2021-06-07 13:28:03
  * @LastEditors: yanbuw1911
  * @Description: 
- * @FilePath: /sverp/app/webApi/controller/Prod.php
+ * @FilePath: \sverp\app\webApi\controller\Prod.php
  */
 
 namespace app\webApi\controller;
@@ -105,9 +105,10 @@ class Prod
         <body>
         <center><h1>' . $date . '生产排程报表</h1></center>';
 
-        foreach ($data as $v) {
+        foreach ($data as $k => $v) {
             $html .= '<table cellspacing="0" cellpadding="0" width="50%">
             <tr>
+                <td>#' . ($k + 1) . '. &nbsp;' . '</td>
                 <td>客户代号：' . $v['ppi_customer_no'] . '</td>
                 <td>客户订单号：' . $v['ppi_customer_pono'] . '</td>
                 <td>工厂品号：' . $v['ppi_prd_item'] . '</td>
@@ -242,6 +243,13 @@ class Prod
     public function autoSchedule()
     {
         $params    = $this->getAutoSchdParam();
+        if (empty($params['prodOrdersList'])) {
+            return json([
+                'result' => true,
+                'data' => []
+            ]);
+        }
+
         $algorithm = new ProdAutoSchd($params);
 
         return json([
