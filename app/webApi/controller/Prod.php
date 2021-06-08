@@ -2,7 +2,7 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-18 15:00:44
- * @LastEditTime: 2021-06-07 13:28:03
+ * @LastEditTime: 2021-06-08 09:32:20
  * @LastEditors: yanbuw1911
  * @Description: 
  * @FilePath: \sverp\app\webApi\controller\Prod.php
@@ -108,7 +108,7 @@ class Prod
         foreach ($data as $k => $v) {
             $html .= '<table cellspacing="0" cellpadding="0" width="50%">
             <tr>
-                <td>#' . ($k + 1) . '. &nbsp;' . '</td>
+                <td>#' . ($k + 1) . '.  ' . '</td>
                 <td>客户代号：' . $v['ppi_customer_no'] . '</td>
                 <td>客户订单号：' . $v['ppi_customer_pono'] . '</td>
                 <td>工厂品号：' . $v['ppi_prd_item'] . '</td>
