@@ -3,9 +3,9 @@
 * @Author: yanbuw1911
 * @Date: 2021-05-20 09:49:01
  * @LastEditors: yanbuw1911
- * @LastEditTime: 2021-05-31 08:29:55
+ * @LastEditTime: 2021-06-09 08:46:55
 * @Description: Do not edit
- * @FilePath: /sverp/app/algorithm/ProdAutoSchd.php
+ * @FilePath: \sverp\app\algorithm\ProdAutoSchd.php
 */
 
 declare(strict_types=1);
@@ -54,7 +54,7 @@ class ProdAutoSchd
         $this->arrangeDays    = $params['arrangeDays'];
         $this->schdMode       = $params['schdMode'];
 
-        $schdParams     = $params['schdParams'];
+        $schdParams           = $params['schdParams'];
         foreach ($schdParams as $schdParam) {
             if ($schdParam['ppi_extra_key'] === 'ppi_bisection_cnt') {
                 // 工序生产量等分数
@@ -311,11 +311,13 @@ class ProdAutoSchd
 
             return [(int)$allPhaseNeed, (int)$singlePhaseNeed];
         };
-        // 查找车间上线工站
-        $workshopOnline = function (array $phases): array {
-            foreach ($phases as $p) {
+        // 查找车间上线工站后的第一个主流程
+        $firstMasterPhase = function (array $phases): array {
+            foreach ($phases as $k => $p) {
                 if ($p['map_ppi_phsid'] === '005') {
-                    return $p;
+                    if (isset($phases[$k + 1])) {
+                        return $phases[$k + 1];
+                    }
                 }
             }
 
@@ -363,6 +365,19 @@ class ProdAutoSchd
                     }
                 }
             }
+        };
+        // 是否在行事历时间范围内
+        $isInCalendar = function (int $time): bool {
+            $currDate = date(self::DATE_FORMAT, $time);
+
+            $flag = ($time > strtotime("$currDate {$this->morningWorktimeStart}")
+                && $time <  strtotime("$currDate {$this->morningWorktimeStop}"))
+                || ($time > strtotime("$currDate {$this->afternoonWorktimeStart}")
+                    && $time <  strtotime("$currDate {$this->afternoonWorktimeStop}"))
+                || ($time > strtotime("$currDate {$this->eveningWorktimeStart}")
+                    && $time <  strtotime("$currDate {$this->eveningWorktimeStop}"));
+
+            return $flag;
         };
 
         #由于数据有问题，取 ppi_po_qty，ppi_expected_qty 中的其中一个值，以 ppi_po_qty 优先
@@ -506,7 +521,7 @@ class ProdAutoSchd
                 if ($p['map_ppi_phsid'] === '005') {
                     $start =
                         strtotime(
-                            $workshopOnline(
+                            $firstMasterPhase(
                                 $this->prodList[$phsSeq - 1]['phases']
                             )['ppi_phs_complete']
                         );
@@ -579,11 +594,16 @@ class ProdAutoSchd
                         )
                         + $singlePhaseNeed;
                 }
+
                 // 有前置时间，则减去前置时间
                 if ((int)$p['map_ppi_aheadtime'] > 0) {
                     $start -= (int)$p['map_ppi_aheadtime'];
                     // 减去前置时间有可能在工作时间之外或者行事历设置之外
-                    $start = $this->handlePhaseStartTimeReverse($start);
+                    if (
+                        $isInCalendar($start)
+                    ) {
+                        $start = $this->handlePhaseStartTimeReverse($start);
+                    }
                 }
                 $actualStart = $this->handlePhaseStartTime($start);
                 $startTimeAddArrange($actualStart);
@@ -714,25 +734,25 @@ class ProdAutoSchd
             $eveningWorktimeStart,
             $eveningWorktimeStop,
             $eveningWorktime
-        ) =
+        )                          =
             $this->arrangeDaysCompute($computeStartAt);
 
-        $morRest  = $morningWorkRest ?: $this->morningWorkRest;
-        $aftRest  = $afternoonWorkRest ?: $this->afternoonWorkRest;
+        $morRest                   = $morningWorkRest ?: $this->morningWorkRest;
+        $aftRest                   = $afternoonWorkRest ?: $this->afternoonWorkRest;
 
-        $morStart = $morningWorktimeStart ?: $this->morningWorktimeStart;
-        $morStop  = $morningWorktimeStop ?: $this->morningWorktimeStop;
+        $morStart                  = $morningWorktimeStart ?: $this->morningWorktimeStart;
+        $morStop                   = $morningWorktimeStop ?: $this->morningWorktimeStop;
 
-        $aftStop  = $afternoonWorktimeStop ?: $this->afternoonWorktimeStop;
-        $eveStop  = $eveningWorktimeStop ?: $this->eveningWorktimeStop;
+        $aftStop                   = $afternoonWorktimeStop ?: $this->afternoonWorktimeStop;
+        $eveStop                   = $eveningWorktimeStop ?: $this->eveningWorktimeStop;
 
-        $morningWorkDatetimeStart   = strtotime("$computeStartDate $morStart");
-        $morningWorkDatetimeStop    = strtotime("$computeStartDate $morStop");
+        $morningWorkDatetimeStart  = strtotime("$computeStartDate $morStart");
+        $morningWorkDatetimeStop   = strtotime("$computeStartDate $morStop");
 
-        $afternoonWorkDatetimeStop  = strtotime("$computeStartDate $aftStop");
-        $eveningWorkDatetimeStop    = strtotime("$computeStartDate $eveStop");
+        $afternoonWorkDatetimeStop = strtotime("$computeStartDate $aftStop");
+        $eveningWorkDatetimeStop   = strtotime("$computeStartDate $eveStop");
 
-        $phaseActualStartAt = $computeStartAt;
+        $phaseActualStartAt        = $computeStartAt;
         if (
             $phaseActualStartAt > $morningWorkDatetimeStop &&
             $phaseActualStartAt - $morningWorkDatetimeStop < $morRest
@@ -768,7 +788,7 @@ class ProdAutoSchd
      */
     private function handlePhaseStartTimeReverse(int &$computeStartAt): int
     {
-        $computeStartDate          = date(self::DATE_FORMAT, $computeStartAt);
+        $computeStartDate           = date(self::DATE_FORMAT, $computeStartAt);
 
         list(
             $morningWorkRest,
@@ -782,18 +802,18 @@ class ProdAutoSchd
             $eveningWorktimeStart,
             $eveningWorktimeStop,
             $eveningWorktime
-        ) =
+        )                           =
             $this->arrangeDaysCompute($computeStartAt);
 
-        $morRest  = $morningWorkRest ?: $this->morningWorkRest;
-        $aftRest  = $afternoonWorkRest ?: $this->afternoonWorkRest;
+        $morRest                    = $morningWorkRest ?: $this->morningWorkRest;
+        $aftRest                    = $afternoonWorkRest ?: $this->afternoonWorkRest;
 
-        $morStart = $morningWorktimeStart ?: $this->morningWorktimeStart;
-        $morStop  = $morningWorktimeStop ?: $this->morningWorktimeStop;
-        $aftStart = $afternoonWorktimeStart ?: $this->afternoonWorktimeStart;
-        $aftStop  = $afternoonWorktimeStop ?: $this->afternoonWorktimeStop;
-        $eveStart = $eveningWorktimeStart ?: $this->eveningWorktimeStart;
-        $eveStop  = $eveningWorktimeStop ?: $this->eveningWorktimeStop;
+        $morStart                   = $morningWorktimeStart ?: $this->morningWorktimeStart;
+        $morStop                    = $morningWorktimeStop ?: $this->morningWorktimeStop;
+        $aftStart                   = $afternoonWorktimeStart ?: $this->afternoonWorktimeStart;
+        $aftStop                    = $afternoonWorktimeStop ?: $this->afternoonWorktimeStop;
+        $eveStart                   = $eveningWorktimeStart ?: $this->eveningWorktimeStart;
+        $eveStop                    = $eveningWorktimeStop ?: $this->eveningWorktimeStop;
 
         $morningWorkDatetimeStart   = strtotime("$computeStartDate $morStart");
         $morningWorkDatetimeStop    = strtotime("$computeStartDate $morStop");
@@ -802,7 +822,7 @@ class ProdAutoSchd
         $eveningWorkDatetimeStart   = strtotime("$computeStartDate $eveStart");
         $eveningWorkDatetimeStop    = strtotime("$computeStartDate $eveStop");
 
-        $phaseActualStartAt = $computeStartAt;
+        $phaseActualStartAt         = $computeStartAt;
         // 当在下午休息时间中，减去休息时间
         if ($phaseActualStartAt < $eveningWorkDatetimeStart && $phaseActualStartAt > $afternoonWorkDatetimeStop) {
             $phaseActualStartAt -= $aftRest;
@@ -851,22 +871,22 @@ class ProdAutoSchd
             $eveningWorktimeStart,
             $eveningWorktimeStop,
             $eveningWorktime
-        ) =
+        )                           =
             $this->arrangeDaysCompute($phaseCompleteAt);
 
-        $morRest  = $morningWorkRest ?: $this->morningWorkRest;
-        $aftRest  = $afternoonWorkRest ?: $this->afternoonWorkRest;
+        $morRest                    = $morningWorkRest ?: $this->morningWorkRest;
+        $aftRest                    = $afternoonWorkRest ?: $this->afternoonWorkRest;
 
-        $morTime  = $morningWorktime ?: $this->morningWorktime;
-        $aftTime  = $afternoonWorktime ?: $this->afternoonWorktime;
-        $eveTime  = $eveningWorktime ?: $this->eveningWorktime;
+        $morTime                    = $morningWorktime ?: $this->morningWorktime;
+        $aftTime                    = $afternoonWorktime ?: $this->afternoonWorktime;
+        $eveTime                    = $eveningWorktime ?: $this->eveningWorktime;
 
-        $morStart = $morningWorktimeStart ?: $this->morningWorktimeStart;
-        $morStop  = $morningWorktimeStop ?: $this->morningWorktimeStop;
-        $aftStart = $afternoonWorktimeStart ?: $this->afternoonWorktimeStart;
-        $aftStop  = $afternoonWorktimeStop ?: $this->afternoonWorktimeStop;
-        $eveStart = $eveningWorktimeStart ?: $this->eveningWorktimeStart;
-        $eveStop  = $eveningWorktimeStop ?: $this->eveningWorktimeStop;
+        $morStart                   = $morningWorktimeStart ?: $this->morningWorktimeStart;
+        $morStop                    = $morningWorktimeStop ?: $this->morningWorktimeStop;
+        $aftStart                   = $afternoonWorktimeStart ?: $this->afternoonWorktimeStart;
+        $aftStop                    = $afternoonWorktimeStop ?: $this->afternoonWorktimeStop;
+        $eveStart                   = $eveningWorktimeStart ?: $this->eveningWorktimeStart;
+        $eveStop                    = $eveningWorktimeStop ?: $this->eveningWorktimeStop;
 
         $morningWorkDatetimeStart   = strtotime("$startDate $morStart");
         $morningWorkDatetimeStop    = strtotime("$startDate $morStop");
@@ -896,19 +916,19 @@ class ProdAutoSchd
             // 当完成时间在当天下班时间之后，则开始时间和完成时间各增加一天，递归计算
             if ($phaseActualCompleteAt > $eveningWorkDatetimeStop) {
                 // 递归计算无效，暂时假设超出部分不会超过一天的工时 ==
-                $remainTime         = $phaseActualCompleteAt - $eveningWorkDatetimeStop;
+                $remainTime           = $phaseActualCompleteAt - $eveningWorkDatetimeStop;
 
-                $completeAt = strtotime('1 day', $morningWorkDatetimeStart) + $remainTime;
-                $compDate     = date(self::DATE_FORMAT, $completeAt);
-                $nextComputeStartDate  = date(self::DATE_FORMAT, strtotime('1 day', $morningWorkDatetimeStart));
+                $completeAt           = strtotime('1 day', $morningWorkDatetimeStart) + $remainTime;
+                $compDate             = date(self::DATE_FORMAT, $completeAt);
+                $nextComputeStartDate = date(self::DATE_FORMAT, strtotime('1 day', $morningWorkDatetimeStart));
 
                 if ($nextComputeStartDate === $compDate) {
                     $computeStartAt = ($morningWorkDatetimeStart + self::DAY_SECONDS);
                     $phaseActualCompleteAt = $completeAt;
                 } else {
-                    $divisor = $morTime + $aftTime + $eveTime;
-                    $remaindDays = (int)floor($remainTime / $divisor);
-                    $computeStartAt = $morningWorkDatetimeStart + self::DAY_SECONDS * $remaindDays;
+                    $divisor               = $morTime + $aftTime + $eveTime;
+                    $remaindDays           = (int)floor($remainTime / $divisor);
+                    $computeStartAt        = $morningWorkDatetimeStart + self::DAY_SECONDS * $remaindDays;
                     $phaseActualCompleteAt = $computeStartAt + $remainTime % $divisor;
                 }
                 return $this->handlePhaseCompleteTime(
@@ -924,13 +944,13 @@ class ProdAutoSchd
             $timeOfNextDay         = $phaseActualCompleteAt - $eveningWorkDatetimeStop;
 
             $phaseActualCompleteAt = strtotime('1 day', $morningWorkDatetimeStart) + $timeOfNextDay;
-            $computeStartAt = ($morningWorkDatetimeStart + self::DAY_SECONDS);
+            $computeStartAt        = ($morningWorkDatetimeStart + self::DAY_SECONDS);
             return $this->handlePhaseCompleteTime(
                 $computeStartAt,
                 $phaseActualCompleteAt
             );
         } else if ($phaseCompleteAt < $computeStartAt) {
-            $diff = abs($phaseCompleteAt - $computeStartAt);
+            $diff    = abs($phaseCompleteAt - $computeStartAt);
             $divisor = $morTime + $aftTime + $eveTime;
             if ($diff < $divisor) {
                 return $this->handlePhaseCompleteTime($computeStartAt - self::DAY_SECONDS, $phaseCompleteAt);
