@@ -3,9 +3,9 @@
 * @Author: yanbuw1911
 * @Date: 2021-06-10 09:15:31
  * @LastEditors: yanbuw1911
- * @LastEditTime: 2021-06-10 10:59:41
+ * @LastEditTime: 2021-06-25 14:12:44
 * @Description: Do not edit
- * @FilePath: \sverp\app\webApi\model\JstwCommute.php
+ * @FilePath: /sverp/app/webApi/model/JstwCommute.php
 */
 
 namespace app\webApi\model;
@@ -20,6 +20,14 @@ class JstwCommute
     {
         $t = self::DB . ".jstw_commute_deduction";
         $res = Db::table($t)->select()->toArray();
+
+        return $res;
+    }
+
+    public function detailedDeductionInVersion(string $time): array
+    {
+        $t = self::DB . ".jstw_commute_deduction";
+        $res = Db::table($t)->where('jcd_created_at', $time)->select()->toArray();
 
         return $res;
     }
@@ -43,5 +51,13 @@ class JstwCommute
     {
         $t =  self::DB . ".jstw_commute_insurance";
         return Common::handleOpt($t, $opt);
+    }
+
+    public function deductionVerions(): array
+    {
+        $t =  self::DB . ".jstw_commute_deduction";
+        $sql = "SELECT DISTINCT jcd_created_at FROM $t";
+
+        return Db::query($sql);
     }
 }
