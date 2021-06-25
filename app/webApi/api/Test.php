@@ -2,7 +2,7 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-04 08:50:09
- * @LastEditTime: 2021-05-18 15:06:17
+ * @LastEditTime: 2021-06-25 11:17:16
  * @LastEditors: yanbuw1911
  * @Description: 
  * @FilePath: /sverp/app/webApi/api/Test.php
@@ -308,28 +308,6 @@ English / 正體中文 123 Chinese 测试 测试测
         // -------------- 从老系统中获取用料出料详细数据 ------------------ //
     }
 
-    public function mongo()
-    {
-        $manager = new \MongoDB\Driver\Manager("mongodb://192.168.132.83:27017");
-        $bulk = new \MongoDB\Driver\BulkWrite;
-        $bulk->insert(['x' => 1, 'name' => '菜鸟教程', 'url' => 'http://www.runoob.com']);
-        $bulk->insert(['x' => 2, 'name' => 'Google', 'url' => 'http://www.google.com']);
-        $bulk->insert(['x' => 3, 'name' => 'taobao', 'url' => 'http://www.taobao.com']);
-        $manager->executeBulkWrite('test.sites', $bulk);
-
-        $filter = ['x' => ['$gt' => 1]];
-        $options = [
-            'projection' => ['_id' => 0],
-            'sort' => ['x' => -1],
-        ];
-        $query = new \MongoDB\Driver\Query($filter, $options);
-        $cursor = $manager->executeQuery('test.sites', $query);
-
-        foreach ($cursor as $document) {
-            print_r($document);
-        }
-    }
-
     public function syncPdoPhs()
     {
         $prodObj = new \app\webApi\model\Prod();
@@ -410,6 +388,7 @@ English / 正體中文 123 Chinese 测试 测试测
             $row['isLeaveJob'] = $fmt($Record['RETIRETYPE']) === false ? '' : $fmt($Record['RETIRETYPE']);
             $row['joinDate'] = $fmt($Record['ENTERDATE']) === false ? '' : $fmt($Record['ENTERDATE']);
             $row['staffNo'] = $fmt($Record['WORKNO']) === false ? '' : $fmt($Record['WORKNO']);
+            $row['salaryComputeType'] = $fmt($Record['GZTYPE1']) === false ? '' : $fmt($Record['GZTYPE1']);
             // $row['born'] = $fmt($Record['BORN']);
             // $row['education'] = $fmt($Record['DEGREE']);
 
