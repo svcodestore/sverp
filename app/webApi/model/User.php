@@ -327,7 +327,7 @@ class User
                         'allowCode' => array_keys($menuid)[0]
                     ];
                     $menuArr = Db::query($sql, $param);
-                    $this->getMenuParent($menuArr[0], $menus);
+                    if ($menuArr) $this->getMenuParent($menuArr[0], $menus);
                 }
             }
 
@@ -415,7 +415,7 @@ class User
      * @return array
      */
     public function getUsersByGroupCode(string $code)
-    {   
+    {
         $uh_table = self::DBNAME . self::USRTBL;
         $ud_table = self::DBNAME . self::USRDEPTMAPTBL;
         $gd_table = self::DBNAME . self::GROUPTBL;
@@ -454,12 +454,12 @@ class User
     /**
      * 获取部门列表
      */
-    public function getDepartments($where=[])
+    public function getDepartments($where = [])
     {
         $table = self::DBNAME . self::GROUPTBL;
         $sql = "SELECT * FROM {$table} WHERE sgd_is_dept = 1";
 
-        $_WHERE = ['sgd_is_dept'=>1];
+        $_WHERE = ['sgd_is_dept' => 1];
         if (!empty($where)) {
             $_WHERE = array_merge($_WHERE, $where);
         }
@@ -467,6 +467,4 @@ class User
         $data = Db::table($table)->where($_WHERE)->select()->toArray();
         return $data;
     }
-
-    
 }
