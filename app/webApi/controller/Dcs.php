@@ -5,6 +5,7 @@
  * @LastEditTime: 2021-05-14 16:03:27
  * @FilePath: \sverp\app\webApi\controller\Dcs.php
  */
+
 namespace app\webApi\controller;
 
 use think\facade\Log;
@@ -18,7 +19,7 @@ class Dcs
   public function getPlan()
   {
     $dirId = request()->param('dirId', null);
-    
+
     $model = new DcsModel();
     $userModel = new UserModel();
     if (empty($dirId)) {
@@ -26,34 +27,34 @@ class Dcs
     } else {
       $directorList = [$model->getDirById($dirId)];
     }
-    
+
     $resList = [];
     foreach ($directorList as $dir) {
       $plans = $model->getPlanByDirId($dir['id']);
       foreach ($plans as $plan) {
         $plan['directory'] = $dir;
         $plan['gatherUsername'] = $userModel->userInfo($plan['userId']);
-        if($plan['gatherUsername'] != null) {
+        if ($plan['gatherUsername'] != null) {
           $plan['gatherUsername'] = $plan['gatherUsername'][0]['con_name'];
         }
 
-        if (!empty($plan['aUserId'])){
-          $aUserIds = $plan['aUserId'][-1]!==','?: substr($plan['aUserId'], 0 , -1);
+        if (!empty($plan['aUserId'])) {
+          $aUserIds = $plan['aUserId'][-1] !== ',' ?: substr($plan['aUserId'], 0, -1);
           $plan['authUsers'] = $userModel->getUsersByIds($aUserIds);
         } else {
           $plan['authUsers'] = [];
         }
 
         if (!empty($plan['cUserId'])) {
-          $cUserIds = $plan['cUserId'][-1]!==','?:substr($plan['cUserId'], 0, -1);
+          $cUserIds = $plan['cUserId'][-1] !== ',' ?: substr($plan['cUserId'], 0, -1);
           $plan['checkUsers'] = $userModel->getUsersByIds($cUserIds);
         } else {
           $plan['checkUsers'] = [];
         }
-        $resList [] = $plan;
+        $resList[] = $plan;
       }
     }
-    return json(['data'=>$resList, 'count'=>count($resList)]);
+    return json(['data' => $resList, 'count' => count($resList)]);
   }
 
   /**
@@ -62,8 +63,8 @@ class Dcs
   public function getPlanCount()
   {
     $dirId = request()->param('dirId', null);
-    if ($dirId === null) return json(['msg'=>'dirId error', 'code'=>0]);
-    
+    if ($dirId === null) return json(['msg' => 'dirId error', 'code' => 0]);
+
     $model = new DcsModel();
     $count = $model->countPlanByDirId($dirId);
     return json(['num' => $count]);
@@ -83,33 +84,33 @@ class Dcs
     foreach ($plans as $plan) {
       $plan['directory'] = $directorList[$plan['dirId'] - 1];
       $plan['gatherUsername'] = $userModel->userInfo($plan['userId']);
-      if($plan['gatherUsername'] != null) {
+      if ($plan['gatherUsername'] != null) {
         $plan['gatherUsername'] = $plan['gatherUsername'][0]['con_name'];
       }
 
-      if (!empty($plan['aUserId'])){
-        $aUserIds = $plan['aUserId'][-1]!==','?: substr($plan['aUserId'], 0 , -1);
+      if (!empty($plan['aUserId'])) {
+        $aUserIds = $plan['aUserId'][-1] !== ',' ?: substr($plan['aUserId'], 0, -1);
         $plan['authUsers'] = $userModel->getUsersByIds($aUserIds);
       } else {
         $plan['authUsers'] = [];
       }
 
       if (!empty($plan['cUserId'])) {
-        $cUserIds = $plan['cUserId'][-1]!==','?:substr($plan['cUserId'], 0, -1);
+        $cUserIds = $plan['cUserId'][-1] !== ',' ?: substr($plan['cUserId'], 0, -1);
         $plan['checkUsers'] = $userModel->getUsersByIds($cUserIds);
       } else {
         $plan['checkUsers'] = [];
       }
-      $resList [] = $plan;
+      $resList[] = $plan;
     }
-    return json(['data'=>$resList]);
+    return json(['data' => $resList]);
   }
 
   public function getDir()
   {
     $model = new DcsModel();
     $dirs = $model->getAllDir();
-    return json(['data'=>$dirs]);
+    return json(['data' => $dirs]);
   }
 
   public function getFinishedPlan()
@@ -123,27 +124,26 @@ class Dcs
       // 处理 userid
       $plan['directory'] = $directorList[$plan['dirId'] - 1];
       $plan['gatherUsername'] = $userModel->userInfo($plan['userId']);
-      if($plan['gatherUsername'] != null) {
+      if ($plan['gatherUsername'] != null) {
         $plan['gatherUsername'] = $plan['gatherUsername'][0]['con_name'];
       }
-      
-      if (!empty($plan['aUserId'])){
-        $aUserIds = $plan['aUserId'][-1]!==','?: substr($plan['aUserId'], 0 , -1);
+
+      if (!empty($plan['aUserId'])) {
+        $aUserIds = $plan['aUserId'][-1] !== ',' ?: substr($plan['aUserId'], 0, -1);
         $plan['authUsers'] = $userModel->getUsersByIds($aUserIds);
       } else {
         $plan['authUsers'] = [];
       }
 
       if (!empty($plan['cUserId'])) {
-        $cUserIds = $plan['cUserId'][-1]!==','?:substr($plan['cUserId'], 0, -1);
+        $cUserIds = $plan['cUserId'][-1] !== ',' ?: substr($plan['cUserId'], 0, -1);
         $plan['checkUsers'] = $userModel->getUsersByIds($cUserIds);
       } else {
         $plan['checkUsers'] = [];
       }
-      Log::debug($plan);
-      $resList [] = $plan;
+      $resList[] = $plan;
     }
-    return json(['data'=>$resList]);
+    return json(['data' => $resList]);
   }
 
   /**
@@ -157,26 +157,26 @@ class Dcs
     $index = request()->param('index', null);
 
     if (empty($planId) || empty($userId) || empty($index)) {
-      return json(['code'=>1, 'msg' => 'param (planId, userId, index) required']);
+      return json(['code' => 1, 'msg' => 'param (planId, userId, index) required']);
     }
     $res = false;
     $model = new DcsModel();
-    switch($index) {
+    switch ($index) {
       case 1:
-        $data = ['actualTime'=> date('Y-m-d H:i:s',time())];
+        $data = ['actualTime' => date('Y-m-d H:i:s', time())];
         $res = $model->updatePlanGather($planId, $data);
         break;
       case 2:
-        $data = ['authActualTime'=> date('Y-m-d H:i:s',time())];
+        $data = ['authActualTime' => date('Y-m-d H:i:s', time())];
         $data['userId'] = $userId;
         $res = $model->updatePlanAuth($planId, $data);
         break;
     }
 
     if ($res) {
-      return json(['code'=>0, 'msg'=>'success']);
+      return json(['code' => 0, 'msg' => 'success']);
     }
-    return json(['code'=>1, 'msg'=>'faild']);
+    return json(['code' => 1, 'msg' => 'faild']);
   }
 
   /**
@@ -189,12 +189,12 @@ class Dcs
     $planTime = $data['time'];
     unset($data['time']);
     $same = $model->getSamePlan($data['content']);
-    
+
     if ($same) {
-      return json(['code'=>1, 'msg'=>'已存在相同的计划']);
+      return json(['code' => 1, 'msg' => '已存在相同的计划']);
     }
     $newPlanId = $model->addPlan($data);
-    
+
     if ($newPlanId) {
       // 初始化下一步 gather 的记录
       $gatherData = [
@@ -203,12 +203,12 @@ class Dcs
         'planTime' => $planTime,
       ];
 
-      if ($model->addPlanGather($gatherData) ) {
-        return json(['code'=>0, 'msg'=>'success']);
+      if ($model->addPlanGather($gatherData)) {
+        return json(['code' => 0, 'msg' => 'success']);
       }
     }
-    
-    return json(['code'=>1, 'msg'=>'faild']);
+
+    return json(['code' => 1, 'msg' => 'faild']);
   }
 
   /**
@@ -217,13 +217,13 @@ class Dcs
   public function delPlan()
   {
     $id = request()->param('id', null);
-    if (empty($id)) return json(['code'=>1, 'msg'=>'param id required!']);
-    
+    if (empty($id)) return json(['code' => 1, 'msg' => 'param id required!']);
+
     $model = new DcsModel();
     if ($model->delPlan($id)) {
-      return json(['code'=>0, 'msg'=>'success']);
+      return json(['code' => 0, 'msg' => 'success']);
     }
-    return json(['code'=>1, 'msg'=>'faild']);
+    return json(['code' => 1, 'msg' => 'faild']);
   }
 
   /**
@@ -234,9 +234,9 @@ class Dcs
   {
     $planId = request()->param('planId', null);
     $userId = request()->param('userId', null);
-    
+
     if (empty($planId) || empty($userId)) {
-      return json(['code'=>1, 'msg'=> 'param required!']);
+      return json(['code' => 1, 'msg' => 'param required!']);
     }
 
     $model = new DcsModel();
@@ -247,9 +247,9 @@ class Dcs
     $res = $model->updatePlanCheck($planId, $data);
 
     if ($res) {
-      return json(['code'=>0, 'msg'=>'success']);
+      return json(['code' => 0, 'msg' => 'success']);
     } else {
-      return json(['code'=>1, 'msg'=>'faild']);
+      return json(['code' => 1, 'msg' => 'faild']);
     }
   }
 
@@ -259,7 +259,7 @@ class Dcs
   public function updatePlan()
   {
     $planId = request()->param('id', null);
-    if (empty($planId)) return json(['code'=>1, 'msg'=>'param id required']);
+    if (empty($planId)) return json(['code' => 1, 'msg' => 'param id required']);
     $model = new DcsModel();
     $data = [
       'content' => request()->param('content'),
@@ -272,9 +272,9 @@ class Dcs
     $r1 = $model->updatePlanById($planId, $data);
     $r2 = $model->updatePlanGather($planId, $gatherData);
     if ($r1 || $r2) {
-      return json(['code'=>0, 'msg'=>'success']);
+      return json(['code' => 0, 'msg' => 'success']);
     }
-    return json(['code'=>1, 'msg'=>'faild']);
+    return json(['code' => 1, 'msg' => 'faild']);
   }
 
   /**
@@ -283,16 +283,16 @@ class Dcs
   public function updatePlanAuth()
   {
     $planId = request()->param('planId', null);
-    if (empty($planId)) return json(['code'=>1, 'msg'=>'param planId is required']);
+    if (empty($planId)) return json(['code' => 1, 'msg' => 'param planId is required']);
     $data = [
       'authPlanTime' => request()->param('time'),
       'userId' => implode(',', request()->param('checkUsers', []))
     ];
     $model = new DcsModel();
     if ($model->updatePlanAuth($planId, $data)) {
-      return json(['code'=>0, 'msg'=>'success']);
+      return json(['code' => 0, 'msg' => 'success']);
     }
-    return json(['code'=>1, 'msg'=>'faild']);
+    return json(['code' => 1, 'msg' => 'faild']);
   }
 
   /**
@@ -301,25 +301,25 @@ class Dcs
   public function updatePlanCheck()
   {
     $planId = request()->param('planId', null);
-    if (empty($planId)) return json(['code'=>1, 'msg'=>'param planId is required']);
+    if (empty($planId)) return json(['code' => 1, 'msg' => 'param planId is required']);
     $data = [
       'checkPlanTime' => request()->param('time', ''),
       'userId' => implode(',', request()->param('checkUsers', []))
     ];
     $model = new DcsModel();
     if ($model->updatePlanCheck($planId, $data)) {
-      return json(['code'=>0, 'msg'=>'success']);
+      return json(['code' => 0, 'msg' => 'success']);
     }
-    return json(['code'=>1, 'msg'=>'faild']);
+    return json(['code' => 1, 'msg' => 'faild']);
   }
 
   /**
    * 添加稽核计划
    */
-  public function addPlanCheck() 
+  public function addPlanCheck()
   {
     $planId = request()->param('planId', null);
-    if (empty($planId)) return json(['code'=>1, 'msg'=>'param']);
+    if (empty($planId)) return json(['code' => 1, 'msg' => 'param']);
     $data = [
       'planId' => $planId,
       'checkPlanTime' => request()->param('time', null),
@@ -328,17 +328,17 @@ class Dcs
 
     $model = new DcsModel();
     if ($model->addPlanCheck($data)) {
-      return json(['code'=>0 , 'msg'=>'success']);
+      return json(['code' => 0, 'msg' => 'success']);
     }
 
-    return json(['code'=>1, 'msg'=>'faild']);
+    return json(['code' => 1, 'msg' => 'faild']);
   }
 
   public function addPlanAuth()
   {
     $planId = request()->param('planId', null);
-    if (empty($planId)) return json(['code'=>1, 'msg'=>'param planId is required']);
-    
+    if (empty($planId)) return json(['code' => 1, 'msg' => 'param planId is required']);
+
     $gatherData = [
       'gatherPlanTime' => request()->param('time', null),
     ];
@@ -353,10 +353,10 @@ class Dcs
       ];
 
       if ($model->addPlanAuth($authData)) {
-        return json(['code'=>0 , 'msg'=>'success']);
+        return json(['code' => 0, 'msg' => 'success']);
       }
     }
-    return json(['code'=>1, 'msg'=>'faild']);
+    return json(['code' => 1, 'msg' => 'faild']);
   }
 
   /** 
@@ -372,21 +372,21 @@ class Dcs
     $userModel = new UserModel();
     $datas = $model->getAllFilesByDepIdAndDir($depId, $dirId);
     $retData = [];
-    foreach($datas as $k=>$f) {
+    foreach ($datas as $k => $f) {
       // 如果有更新文档， 则只显示最新的文档信息
       if ($f['version'] != 0 && ($f['versionNo'] == 1 || $f['originalFileId'] !== null))
         continue;
-      
-      $_dep = $userModel->getDepartments(['id'=>$f['departmentId']]);
+
+      $_dep = $userModel->getDepartments(['id' => $f['departmentId']]);
       if ($_dep) {
         $f['department'] = $_dep[0];
       } else {
-        $f['department'] = ['sgd_alias'=> ''];
+        $f['department'] = ['sgd_alias' => ''];
       }
-      
+
       $retData[] = $f;
     }
-    return json(['data'=>$retData]);
+    return json(['data' => $retData]);
   }
 
   /**
@@ -399,16 +399,16 @@ class Dcs
     $departmentId = request()->param('departmentId', null);
     $dirId = request()->param('dirId', null);
     $userId = request()->param('userId', null);
-    if ($file === null) return json(['code'=>1, 'msg'=>'file required!']);
-    
+    if ($file === null) return json(['code' => 1, 'msg' => 'file required!']);
+
     $model = new DcsModel();
     $file_path = $model->getFilePath($dirId, $departmentId);
     if (!is_dir($file_path)) {
       mkdir($file_path, 0777, true);
     }
-    
-    try{
-      $file->move($file_path, $file_path.$file->getOriginalName());
+
+    try {
+      $file->move($file_path, $file_path . $file->getOriginalName());
       $file_saved = true;
     } catch (FileException $e) {
       $file_saved = false;
@@ -424,12 +424,12 @@ class Dcs
       $data['versionNo'] = 1;
       $data['cuser'] = $userName;
       $data['originalFileId'] = null;
-      $data['isoNo'] = str_replace('.'.$file->getOriginalExtension(), '', $file->getOriginalName());
+      $data['isoNo'] = str_replace('.' . $file->getOriginalExtension(), '', $file->getOriginalName());
       $model->addFile($data);
-      return json(['code'=>0, 'msg'=>'success']);
+      return json(['code' => 0, 'msg' => 'success']);
     }
 
-    return json(['code'=>1, 'msg'=>'file upload faild']);
+    return json(['code' => 1, 'msg' => 'file upload faild']);
   }
 
   /**
@@ -439,19 +439,19 @@ class Dcs
   {
     $fileId = request()->param('fileId', null);
     $userId = request()->param('userId', null);
-    
-    if (empty($fileId)) return json(['code'=>1, 'msg'=>'param fileId required!']);
-    
+
+    if (empty($fileId)) return json(['code' => 1, 'msg' => 'param fileId required!']);
+
     $model = new DcsModel();
     $file = $model->getFileByFileId($fileId);
     if ($file) {
       return download($file['filesPath'], $file['filesName'], false, 3600);
     }
     $model->recordLog(3, $file['filesName'], $userId);
-    return json(['code'=>1, 'msg'=>'file not exist']);
+    return json(['code' => 1, 'msg' => 'file not exist']);
   }
 
-  
+
 
   /**
    * 提交更新权限申请
@@ -473,29 +473,29 @@ class Dcs
     if ($recordData['applyContent'] == '更新') {
       $res = $model->findRecordOnlyApply($recordData);
       if (!empty($res)) {
-        return json(['code'=>1, 'msg'=>'该文件已有用户提交更新申请']);
+        return json(['code' => 1, 'msg' => '该文件已有用户提交更新申请']);
       }
 
       $res2 = $model->findRecordOnlyPass($recordData);
       if (!empty($res2)) {
-        return json(['code'=>1, 'msg'=>'无法申请，存在已通过审核但并未更新文件记录']);
+        return json(['code' => 1, 'msg' => '无法申请，存在已通过审核但并未更新文件记录']);
       }
     } else {
       $res = $model->findRecordOnly($recordData);
       if (!empty($res)) {
-        return json(['code'=>1, 'msg'=>'请勿重复申请']);
+        return json(['code' => 1, 'msg' => '请勿重复申请']);
       }
       $res2 = $model->selectPass($recordData);
       if (!empty($res2)) {
-        return json(['code'=>1, 'msg'=>'已提交，并已通过']); 
+        return json(['code' => 1, 'msg' => '已提交，并已通过']);
       }
     }
 
     if ($model->addRecord($recordData)) {
-      return json(['code'=>0 , 'msg'=>'申请已提交']);
+      return json(['code' => 0, 'msg' => '申请已提交']);
     }
-    
-    return json(['code'=>1, 'msg'=>'提交失败']);
+
+    return json(['code' => 1, 'msg' => '提交失败']);
   }
 
   /**
@@ -504,7 +504,7 @@ class Dcs
    */
   public function updateVersion()
   {
-    
+
     $file = request()->file('file');
     $fileId = request()->param('fileId', null);
     $userName = request()->param('userName', null);
@@ -515,38 +515,38 @@ class Dcs
 
     $model = new DcsModel();
     $file_path = $model->getFilePath($dirId, $departmentId);
-    
+
     $recordData = [
       'applyContent' => '更新',
       'fileId' => $fileId,
     ];
 
     $record = $model->findRecordOnlyApply($recordData);
-    if(!empty($record)) {
-      return json(['code'=>1, 'msg'=>'更新失败，该文件有更新申请，请先审核']);
+    if (!empty($record)) {
+      return json(['code' => 1, 'msg' => '更新失败，该文件有更新申请，请先审核']);
     }
 
     $r2 = $model->findRecordOnlyPass($recordData);
-    if (!empty($r2)){
+    if (!empty($r2)) {
       $cuser = $r2['applyName'];
     }
 
     $oldFile = $model->getFileByFileId($fileId);
 
-    try{
-      $file->move($file_path, $file_path.$file->getOriginalName());
+    try {
+      $file->move($file_path, $file_path . $file->getOriginalName());
       $file_saved = true;
     } catch (FileException $e) {
       $file_saved = false;
     }
-    
+
     if ($file_saved) {
       $newFile = [
         'filesPath' => $file_path,
         'filesName' => $file->getOriginalName(),
         'cuser' => $cuser,
         'departmentId' => $departmentId,
-        'isoNo' => str_replace('.'.$file->getOriginalExtension(), '', $file->getOriginalName()),
+        'isoNo' => str_replace('.' . $file->getOriginalExtension(), '', $file->getOriginalName()),
         'version' => 0,
         'versionNo' => $oldFile['versionNo'] + 1,
         'dirId' => $dirId,
@@ -564,21 +564,21 @@ class Dcs
           $model->updateRecordOut($record['id']);
         }
         $model->recordLog(5, $newFile['filesName'], $newFile['userId']);
-        return json(['code'=>0, 'msg'=>'更新成功']);
+        return json(['code' => 0, 'msg' => '更新成功']);
       }
     }
-    
-    return json(['code'=>1, 'msg'=>'更新失败']);
+
+    return json(['code' => 1, 'msg' => '更新失败']);
   }
 
   public function getFilesVersion()
   {
     $originalFileId = request()->param('original', null);
-    if (empty($originalFileId)) return json(['code'=>1, 'msg'=>'param original is required']);
+    if (empty($originalFileId)) return json(['code' => 1, 'msg' => 'param original is required']);
     $model = new DcsModel();
     $files = $model->getFilesVersion($originalFileId);
     $files[] = $model->getFileByFileId($originalFileId);
-    return json(['data'=>$files]);
+    return json(['data' => $files]);
   }
 
   /**
@@ -592,7 +592,6 @@ class Dcs
     $model = new DcsModel();
     $file = $model->getFileByFileId($fileId);
     $model->recordLog(5, $file['filesName'], $userId);
-    return json(['code'=>0, 'msg'=>'success']);
+    return json(['code' => 0, 'msg' => 'success']);
   }
-
 }
