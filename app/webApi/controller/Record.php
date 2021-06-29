@@ -96,13 +96,16 @@ class Record
       $data['count'] = $result['count'];
     } else {
       $record = new recordModel;
-      $field = 'r.id,r.mechenum,r.alarmtime,r.reachtime,r.repaircontents,r.repairmethod,r.repairman,r.repairtime,r.repairAttr,r.repairstatus,m.mache_name';
+      $field = 'r.id,r.mechenum,r.mache_name as mache_name_record,r.alarmtime,r.reachtime,r.repaircontents,r.repairmethod,r.repairman,r.repairtime,r.repairAttr,r.repairstatus,m.mache_name';
       $data['data'] = $record->repair_record($field, $cnd, $page = 0, $limit = 10000);
       foreach ($data['data'] as $key => $value) {
         if (!empty(intval($value['repairtime']))) {
           $data['data'][$key]['expendtime'] = (intval($value['repairtime']) - intval($value['alarmtime'])) / 60;
         } else {
           $data['data'][$key]['expendtime'] = 0;
+        }
+        if ($value['mache_name_record']) {
+          $data['data'][$key]['mache_name'] = $value['mache_name_record'];
         }
         $data['data'][$key]['alarmtime'] = date('Y-m-d H:i:s', $value['alarmtime']);
         $data['data'][$key]['reachtime'] = date('Y-m-d H:i:s', intval($value['reachtime']));
@@ -114,7 +117,8 @@ class Record
     return json($data);
   }
 
-  public function getRepairDetail () {
+  public function getRepairDetail()
+  {
     $data['code'] = 1;
     $data['msg'] = 'Object Not Found';
     $id = request()->param('recordId');
@@ -126,12 +130,12 @@ class Record
       $record_info['create_time'] = date('Y-m-d H:i:s', $record_info['create_time']);
     }
     $data['data'] = $record_info;
-    
+
     if ($record_info) {
       $data['code'] = 0;
       $data['msg'] = 'success';
     }
-    
+
     return json($data);
   }
 
@@ -321,6 +325,8 @@ class Record
   public function sendMsg()
   {
     $param = request()->param('param');
+    var_dump($param);
+    exit;
     if (!empty($param['row']['line_num']) && !empty($param['row']['produc_num'] && !empty($param['row']['mache_num']) && !empty($param['row']['mache_name']))) {
       // TPM报修
       $content['part'] = 'TPM';
@@ -338,8 +344,9 @@ class Record
             'repairAttr' => $param['cate'] ? $param['cate'] : '',
             'repairstatus' => 'false',
             'dell_repair' => 0,
-            'reporter_con_id' => isset($param['reporterConId'])?$param['reporterConId']:'',
-            'reporter_name' => isset($param['reporterName'])?$param['reporterName']:''
+            'mache_name' => $param['row']['mache_name'],
+            'reporter_con_id' => isset($param['reporterConId']) ? $param['reporterConId'] : '',
+            'reporter_name' => isset($param['reporterName']) ? $param['reporterName'] : ''
           ];
           $record = new recordModel;
           $id = $record->addRecord($data);
@@ -359,9 +366,9 @@ class Record
         'repair_img' => $img ? $img : '',
       ];
       $content = [
-        'department' => $param['noticeDepartment'].' '.(isset($param['address'])?$param['address']:''), 
-        'meche' => $param['mecheName'], 
-        'cause' => $param['cause'], 
+        'department' => $param['noticeDepartment'] . ' ' . (isset($param['address']) ? $param['address'] : ''),
+        'meche' => $param['mecheName'],
+        'cause' => $param['cause'],
         'time' => date('Y-m-d H:i:s', time())
       ];
       $res = smsSend($param['phone'], '文迪软件', 'SMS_210075241', $content); //发送短信
@@ -427,7 +434,7 @@ class Record
         $data['thumbUrl'] = '';
         $data['url'] = 'http://' . $_SERVER['HTTP_HOST'] . '/static/' . $savename;
         cookie('imgUrl', 'http://' . $_SERVER['HTTP_HOST'] . '/static/' . $savename, 3600);
-        $imgurl=$data['url'];
+        $imgurl = $data['url'];
         return json($data);
       } catch (\think\exception\ValidateException $e) {
         echo $e->getMessage();
@@ -515,6 +522,7 @@ class Record
       $rows['repairstatus'] = 'true';
       $rows['repaircontents'] = $params['content'];
       $rows['repairmethod'] = $params['action'];
+      $rows['repairAttr'] = $params['repairAttr'];
       $res = $record->updateRecord($id, $rows);
       $donSendMsg = false;
 
@@ -528,7 +536,7 @@ class Record
             $result = $record->getFitting($field, $where, $page = 0, $limit = 10000);
           }
           if (!empty($result) && !empty($result[0]['fitting_num']) && ($result[0]['fitting_num'] - $v) >= 0) {
-            if ($result[0]['is_unlimit'] != 1){
+            if ($result[0]['is_unlimit'] != 1) {
               // 实物配件，库存扣量
               $data['fitting_num'] = $result[0]['fitting_num'] - $v;
               $data['fitting_msg_status'] = intval($result[0]['fitting_msg_status']); //由于下一次循环没有定义该值所以需要默认数据库的值
@@ -541,8 +549,7 @@ class Record
               $donSendMsg = true;
             }
             $data['fitting_consume_num'] = $result[0]['fitting_consume_num'] + $v; // 记录配件总使用量
-            $record->updateFitting($k, $data);  
-            
+            $record->updateFitting($k, $data);
           } else {
             $msg['msg'] = '配件不足';
           }
@@ -577,16 +584,16 @@ class Record
     }
   }
 
-  
+
   /**
    * 获取设备名称列表 以便快速输入设备名称
    * 
    */
-  public function getMecheNames() 
+  public function getMecheNames()
   {
     return json((new recordModel)->getMecheNames());
   }
-  
+
   /**
    * 获取其它部门的报修记录 log 表
    */
@@ -601,7 +608,7 @@ class Record
     }
     $model = new recordModel();
     $data = $model->getRepairLogs($where, $page, $limit);
-    foreach ($data as $k =>$v) {
+    foreach ($data as $k => $v) {
       $data[$k]['repair_create_time'] = date('Y-m-d H:i:s', $v['repair_create_time']);
       $data[$k]['repair_done_time'] = date('Y-m-d H:i:s', $v['repair_done_time']);
     }
@@ -612,7 +619,7 @@ class Record
   {
     $record_id = request()->param('recordId');
     if (!$record_id) {
-      return json(['code'=>1, 'messages'=>'record id requested!']);
+      return json(['code' => 1, 'messages' => 'record id requested!']);
     }
     $data = (new recordModel)->getRecordFittingUsed($record_id);
     return json([
@@ -620,7 +627,7 @@ class Record
       'data' => $data
     ]);
   }
-  
+
   /**
    * 快速报修接口
    * TPM、其它部门维修将统一使用record表记录
@@ -631,16 +638,16 @@ class Record
     $model = new recordModel();
     $return['code'] = 1;
     $return['msg'] = '发送失败';
-    
+
     if (isset($params['macheNum']) && !empty($params['macheNum'])) {
-      $mache_info = $model->getMecheInfo('*', ['mache_num'=>$params['macheNum']], 0, 1);
+      $mache_info = $model->getMecheInfo('*', ['mache_num' => $params['macheNum']], 0, 1);
       if ($mache_info) {
         $mache_info = $mache_info[0];
       } else {
         $mache_info = false;
       }
-    } 
-    
+    }
+
     if (empty($mache_info)) {
       $mache_info['mache_name'] = request()->param('macheName', '');
       $mache_info['mache_num'] = request()->param('macheNum', '');
@@ -650,33 +657,34 @@ class Record
 
     $data = [
       'mechenum' => $params['macheNum'],
+      'mache_name' => $params['macheName'],
       'alarmtime' => time(),
       'repairAttr' => $params['cate'] ? $params['cate'] : '',
       'repairstatus' => 'false',
       'dell_repair' => 0,
       'repaircontents' => request()->param('cause', ''),
-      'reporter_con_id' => isset($params['reporterConId'])?$params['reporterConId']:'',
-      'reporter_name' => isset($params['reporterName'])?$params['reporterName']:''
+      'reporter_con_id' => isset($params['reporterConId']) ? $params['reporterConId'] : '',
+      'reporter_name' => isset($params['reporterName']) ? $params['reporterName'] : ''
     ];
     if ($model->addRecord($data)) {
       $content['part'] =  request()->param('noticeDepartment', 'TPM');
       $content['number'] = $mache_info['line_num'];
       $content['line_num'] = $mache_info['produc_num'];
       $content['meche_num'] = $mache_info['mache_num'];
-      $content['meche_name'] =($mache_info?$mache_info['mache_name']:'') .' '. $params['cause']; //机器名和初步原因
+      $content['meche_name'] = ($mache_info ? $mache_info['mache_name'] : '') . ' ' . $params['cause']; //机器名和初步原因
       $content['department'] = $content['part'];
       $content['meche'] = $mache_info['mache_name'];
       $content['cause'] = $params['cause'];
       $content['time'] = date('Y-m-d H:i:s');
-      
+
       $phone = implode(',', $params['arr']);
       // 根据内容使用模板
       if (empty($content['line_num']) && empty($content['number'])) {
-        $res = smsSend($phone, '文迪软件', 'SMS_210075241', $content); 
+        $res = smsSend($phone, '文迪软件', 'SMS_210075241', $content);
       } else {
         $res = smsSend($phone, '文迪软件', 'SMS_207970725', $content);
       }
-      
+
       if ($res['Code'] !== 'OK') {
         $return['msg']  = '已添加到系统, 但未能发送短信通知';
       } else {
@@ -684,7 +692,7 @@ class Record
         $return['msg']  = '发送成功';
       }
     }
-    
+
     return json($return);
   }
 }

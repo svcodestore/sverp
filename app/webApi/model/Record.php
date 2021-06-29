@@ -18,7 +18,7 @@ class Record
   protected $meche_info = starvc_homedb . '.prodlib_meche_info';
   protected $repair_log = starvc_homedb . '.prodlib_repair_log';
   protected $repair_notify_staff = starvc_homedb . '.prodlib_repair_notify_staff';
-  protected $tmplib_fitting = starvc_homedb. '.tmplib_fitting';
+  protected $tmplib_fitting = starvc_homedb . '.tmplib_fitting';
   protected $repair_fitting_used = starvc_homedb . '.prodlib_repair_fitting_used';
   public function repair_record($field, $where, $page, $limit)
   {
@@ -26,7 +26,7 @@ class Record
       ->alias('r')
       ->field($field)
       // ->join($this->meche_info . ' m', 'r.mechenum = m.mache_num')
-      ->leftjoin($this->meche_info. ' m', 'r.mechenum = m.mache_num')
+      ->leftjoin($this->meche_info . ' m', 'r.mechenum = m.mache_num')
       ->where($where)
       ->order('id desc')
       ->limit($page, $limit)
@@ -49,11 +49,12 @@ class Record
     $res = Db::name($this->repair_record)->insertAll($rows);
     return $res !== false;
   }
-  public function get_record_detail(int $id): array{
+  public function get_record_detail(int $id): array
+  {
     return Db::table($this->repair_record)->alias('rr')
-              ->field('*, rr.id as id, m.id as mache_id')
-              ->leftjoin($this->meche_info.' m', 'rr.mechenum = m.mache_num')
-              ->where('rr.id', $id)->find();
+      ->field('*, rr.id as id, m.id as mache_id')
+      ->leftjoin($this->meche_info . ' m', 'rr.mechenum = m.mache_num')
+      ->where('rr.id', $id)->find();
   }
   public function update_record(string $where, array $row): bool
   {
@@ -77,13 +78,12 @@ class Record
           unset($v[$ks]['mache_name']);
           unset($v[$ks]['expendtime']);
           unset($v[$ks]['id']);
-          
+
           $v[$ks]['alarmtime'] = isset($vs['alarmtime']) ? strtotime($vs['alarmtime']) : time();
-          $v[$ks]['reachtime'] = isset($vs['reachtime']) ? strtotime($vs['reachtime']):0;
-          $v[$ks]['repairtime'] = isset($vs['repairtime'])? strtotime($vs['repairtime']):0;
-          $v[$ks]['repairAttr'] = isset($vs['repairAttr'])? $vs['repairAttr']:'维修';
-          $v[$ks]['repairstatus'] = isset($vs['repairstatus']) ? $vs['repairstatus']: 'false';
-          
+          $v[$ks]['reachtime'] = isset($vs['reachtime']) ? strtotime($vs['reachtime']) : 0;
+          $v[$ks]['repairtime'] = isset($vs['repairtime']) ? strtotime($vs['repairtime']) : 0;
+          $v[$ks]['repairAttr'] = isset($vs['repairAttr']) ? $vs['repairAttr'] : '维修';
+          $v[$ks]['repairstatus'] = isset($vs['repairstatus']) ? $vs['repairstatus'] : 'false';
         }
         $flag = $flag && false !== $this->add_record($v);
       }
@@ -142,10 +142,10 @@ class Record
       if ($k == 'A') {
         foreach ($v as $ks => $vs) {
           unset($v[$ks]['id']);
-          if(empty($v[$ks]['status'])){
+          if (empty($v[$ks]['status'])) {
             $v[$ks]['status'] = 1;
           }
-          $v[$ks]['create_time'] = date('Y-m-d H:i:s',time());
+          $v[$ks]['create_time'] = date('Y-m-d H:i:s', time());
         }
         $flag = $flag && false !== $this->addMeche($v);
       }
@@ -186,8 +186,8 @@ class Record
   public function getRepairLogs($where, $page, $limit): array
   {
     $data = DB::table($this->repair_log)
-              ->where($where)->limit($page, $limit)
-              ->select()->toArray();
+      ->where($where)->limit($page, $limit)
+      ->select()->toArray();
     return $data;
   }
   public function getNotify($field, $where, $page, $limit)
@@ -245,7 +245,7 @@ class Record
   public function addRecord(array $rows): int
   {
     $res = Db::name($this->repair_record)->insertGetId($rows);
-    
+
     return $res;
   }
   public function updateRecord(string $where, array $rows): bool
@@ -269,11 +269,11 @@ class Record
   }
   public function addFitting(array $rows): bool
   {
-    foreach($rows as $k=>$row) {
+    foreach ($rows as $k => $row) {
       $rows[$k] = $this->judgeFittingStatus($row);
     }
     $res = Db::name($this->tmplib_fitting)->insertAll($rows);
-	
+
     return $res;
   }
   public function updateFitting(string $where, array $row): bool
@@ -304,7 +304,7 @@ class Record
         $flag  = $flag && false !== $this->delFitting($v['id']);
       }
     }
-	
+
     if ($flag) {
       Db::commit();
     } else {
@@ -334,7 +334,7 @@ class Record
       'add_time' => time()
     ];
     return Db::table($this->repair_fitting_used)
-            ->insertGetId($data);
+      ->insertGetId($data);
   }
   /**
    * 根据维修记录id获取配件使用
