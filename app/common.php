@@ -1,9 +1,9 @@
 <?php
 /*
  * @Date: 2020-12-28 14:21:43
- * @LastEditors: Mok.CH
- * @LastEditTime: 2021-05-18 10:00:34
- * @FilePath: \sverp\app\common.php
+ * @LastEditors: yanbuw1911
+ * @LastEditTime: 2021-06-30 13:05:32
+ * @FilePath: /sverp/app/common.php
  */
 // 应用公共文件
 #require_once '../vendor/autoload.php';
@@ -163,7 +163,7 @@ function phpredis(): \Redis
 
 function pdosqlsrv(array $options = null): \PDO
 {
-	$dbinfo = $options ?? [
+	$dbinfo = array_merge([
 		// 数据库类型
 		'type'                      => 'Sqlsrv', //必须输入
 		// 用户名
@@ -174,7 +174,7 @@ function pdosqlsrv(array $options = null): \PDO
 		'dsn'                    => env('mssql.dsn', 'odbc:Driver={SQL Server};Server=192.168.123.245,1433;Database=databasesdwx'),
 		// 'dsn'                    => 'odbc:Driver={SQL Server};Server=192.168.123.245,1433;Database=databasesdwx',
 		// 'dsn'                       => 'sqlsrv:server=192.168.123.245,1433;Database=databasesdwx;',
-	];
+	], $options ?? []);;
 
 	$dbh = new PDO($dbinfo['dsn'], $dbinfo['username'], $dbinfo['password']);
 
