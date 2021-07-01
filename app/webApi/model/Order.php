@@ -2,7 +2,7 @@
 /*
  * @Date: 2021-05-24 09:42:46
  * @LastEditors: yanbuw1911
- * @LastEditTime: 2021-07-01 13:37:55
+ * @LastEditTime: 2021-07-01 15:17:22
  * @FilePath: /sverp/app/webApi/model/Order.php
  */
 
@@ -446,7 +446,7 @@ class Order
                         t.leiJiChuHuo,
                         t.chuHuoDanHao,
                         t.danCiChuHuoShiJian
-                order by t.KhPONo,
+                order by 
                         t.dingDanShiJian desc
                         ";
 
