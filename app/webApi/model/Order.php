@@ -2,7 +2,7 @@
 /*
  * @Date: 2021-05-24 09:42:46
  * @LastEditors: yanbuw1911
- * @LastEditTime: 2021-06-30 16:44:28
+ * @LastEditTime: 2021-07-01 07:55:40
  * @FilePath: /sverp/app/webApi/model/Order.php
  */
 
@@ -24,7 +24,7 @@ class Order
         }
 
         $this->db = pdosqlsrv([
-            'dsn' => 'odbc:Driver={SQL Server};Server=192.168.123.245,1433;Database=' . $db_name,
+            'dsn' => 'sqlsrv:server=192.168.123.245,1433;Database=' . $db_name,
         ]);
     }
 
@@ -327,7 +327,7 @@ class Order
         }
 
         $db = pdosqlsrv([
-            'dsn' => 'odbc:Driver={SQL Server};Server=192.168.123.245,1433;Database=' . $db_name,
+            'dsn' => 'sqlsrv:server=192.168.123.245,1433;Database=' . $db_name,
         ]);
 
         $cond = "";

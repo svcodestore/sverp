@@ -2,7 +2,7 @@
 /*
  * @Date: 2020-12-28 14:21:43
  * @LastEditors: yanbuw1911
- * @LastEditTime: 2021-06-30 13:05:32
+ * @LastEditTime: 2021-07-01 08:07:43
  * @FilePath: /sverp/app/common.php
  */
 // 应用公共文件
@@ -171,7 +171,7 @@ function pdosqlsrv(array $options = null): \PDO
 		// 密码
 		'password'                  => 'Sql_2008',
 		// 连接dsn,驱动、服务器地址和端口、数据库名称
-		'dsn'                    => env('mssql.dsn', 'odbc:Driver={SQL Server};Server=192.168.123.245,1433;Database=databasesdwx'),
+		'dsn'                    => env('mssql.dsn', 'sqlsrv:server=192.168.123.245,1433;Database==databasesdwx'),
 		// 'dsn'                    => 'odbc:Driver={SQL Server};Server=192.168.123.245,1433;Database=databasesdwx',
 		// 'dsn'                       => 'sqlsrv:server=192.168.123.245,1433;Database=databasesdwx;',
 	], $options ?? []);;
