@@ -2,7 +2,7 @@
 /*
  * @Author: yu chen
  * @Date: 2020-12-07 16:16:43
- * @LastEditTime: 2021-04-22 16:19:45
+ * @LastEditTime: 2021-07-01 10:56:50
  * @LastEditors: Mok.CH
  * @Description: In User Settings Edit
  * @FilePath: \sverp\app\webApi\model\Record.php
@@ -11,6 +11,7 @@
 namespace app\webApi\model;
 
 use think\facade\Db;
+use think\facade\Log;
 
 class Record
 {
