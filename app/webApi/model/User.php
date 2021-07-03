@@ -457,14 +457,7 @@ class User
     public function getDepartments($where = [])
     {
         $table = self::DBNAME . self::GROUPTBL;
-        $sql = "SELECT * FROM {$table} WHERE sgd_is_dept = 1";
-
-        $_WHERE = ['sgd_is_dept' => 1];
-        if (!empty($where)) {
-            $_WHERE = array_merge($_WHERE, $where);
-        }
-
-        $data = Db::table($table)->where($_WHERE)->select()->toArray();
-        return $data;
+        $where = array_merge(['sgd_is_dept' => 1], $where);
+        return Db::table($table)->where($where)->select()->toArray();
     }
 }
