@@ -2,7 +2,7 @@
 /*
  * @Author: yu chen
  * @Date: 2020-12-07 16:23:05
- * @LastEditTime: 2021-07-01 11:16:22
+ * @LastEditTime: 2021-07-02 09:05:16
  * @LastEditors: Mok.CH
  * @Description: In User Settings Edit
  * @FilePath: \sverp\app\webApi\controller\Record.php
@@ -690,7 +690,12 @@ class Record
                 else continue;
                 $con_id[] = $_udata['notify_con_id'];
             }
-            $template = "斯达文星TPM报修 部门：%s，设备：%s，故障: %s，请及时维修 %s。";
+            $template =
+                "斯达文星TPM报修
+                部门：%s
+                设备：%s
+                故障: %s
+                请及时维修 %s";
             app('WeChat')->sendTextMsg($con_id, sprintf($template, $content['part'], $content['meche_name'], $content['cause'], $content['time']));
 
             // 短信通知
