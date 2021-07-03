@@ -2,7 +2,7 @@
 /*
  * @Date: 2021-06-30 10:59:20
  * @LastEditors: Mok.CH
- * @LastEditTime: 2021-07-01 14:54:47
+ * @LastEditTime: 2021-07-03 09:31:48
  * @FilePath: \sverp\app\webApi\controller\WeChat.php
  */
 
@@ -49,7 +49,7 @@ class WeChat
         $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
-        if ($code == 404)
+        if ($code != 200)
             return json(false);
 
         $data = json_decode($res, true);
