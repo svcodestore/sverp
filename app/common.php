@@ -1,9 +1,9 @@
 <?php
 /*
  * @Date: 2020-12-28 14:21:43
- * @LastEditors: yanbuw1911
- * @LastEditTime: 2021-07-01 09:23:49
- * @FilePath: /sverp/app/common.php
+ * @LastEditors: Mok.CH
+ * @LastEditTime: 2021-07-08 16:00:58
+ * @FilePath: \sverp\app\common.php
  */
 // 应用公共文件
 #require_once '../vendor/autoload.php';
@@ -47,7 +47,7 @@ function smsSend($phone, $sign, $template, $content = array())
 	if (env('APP_DEBUG_SEND_SMS') === false) {
 		return ['Code' => 'OK'];
 	}
-	AlibabaCloud::accessKeyClient('LTAI4GKxRNfpcn52LPF7BXHc', '89DyCBjPV8kf1OeSU5O9kjFUfMxd7J')
+	AlibabaCloud::accessKeyClient(env('ALIYUN_SMS_ACCESS_KEY'), env('ALIYUN_SMS_SECRET_KEY'))
 		->regionId('cn-hangzhou')
 		->asDefaultClient();
 	try {
