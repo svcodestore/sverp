@@ -2,7 +2,7 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-04 08:50:09
- * @LastEditTime: 2021-06-25 11:17:16
+ * @LastEditTime: 2021-07-10 10:14:02
  * @LastEditors: yanbuw1911
  * @Description: 
  * @FilePath: /sverp/app/webApi/api/Test.php
@@ -10,6 +10,7 @@
 
 namespace app\webApi\api;
 
+use app\webApi\controller\Order;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 use mysqli;
@@ -72,7 +73,7 @@ class Test
 
     public function test()
     {
-        var_dump(class_exists(\Redis::class));
+        (new Order)->syncPrice();
     }
 
     public function dompdf()

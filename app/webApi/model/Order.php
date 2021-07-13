@@ -2,7 +2,7 @@
 /*
  * @Date: 2021-05-24 09:42:46
  * @LastEditors: yanbuw1911
- * @LastEditTime: 2021-07-01 15:17:22
+ * @LastEditTime: 2021-07-10 11:17:07
  * @FilePath: /sverp/app/webApi/model/Order.php
  */
 
@@ -453,5 +453,169 @@ class Order
         $result = $db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
 
         return $result;
+    }
+
+    public function syncPrice(string $KhPONo, string $sp_No, string $khNo, string $company, string $price)
+    {
+        $db_name = 'sdwx_sj';
+        if ($company == 2) {
+            $db_name = 'JStw';
+        }
+
+        $db = pdosqlsrv([
+            'dsn' => 'sqlsrv:server=192.168.123.245,1433;Database=' . $db_name,
+        ]);
+
+        $cond = "";
+        $KhPONo && ($cond .= "and smSOA.KhPONo = '$KhPONo'");
+        $sp_No && ($cond .= "and erpSp.sp_No like '$sp_No%'");
+        $khNo && ($cond .= "and smSOBPlus.smSOBPlusmyField12 like '$khNo%'");
+
+        $sql = "select t.cunHuoBianHao, t.SP_ID, t.P_Price, t.tP_Price, t.old_P_Price, t.old_tP_Price
+                from (select a.cunHuoBianHao,
+                            d.SP_ID,
+                            d.P_Price,
+                            d.tP_Price,
+                            d.FromDate,
+                            c.Bt_Date,
+                            b.P_Price  as old_P_Price,
+                            b.tP_Price as old_tP_Price
+                    from (select t.smSOBPlusmyField12,
+                                t.OrdB_ID,
+                                t.SC_Name,
+                                t.cunHuoBianHao,
+                                t.keHuBianHao,
+                                t.KhPONo,
+                                t.dingDanShiJian,
+                                t.xiaoShouDanHao,
+                                t.dingDanShuLiang,
+                                t.jiHuaJiaoQi,
+        --                         t.chuHuoDanHao,
+                                t.leiJiChuHuo,
+                                t.chuHuoDanHao,
+                                t.danCiChuHuoShiJian,
+                                sum(t.danCiChuHuo) as danCiChuHuo
+                            from (select a.smSOBPlusmyField12,
+                                        a.SC_Name,
+                                        a.keHuBianHao,
+                                        a.KhPONo,
+                                        a.dingDanShiJian,
+                                        a.xiaoShouDanHao,
+                                        a.dingDanShuLiang,
+                                        a.jiHuaJiaoQi,
+                                        a.cunHuoBianHao,
+                                        a.leiJiChuHuo,
+                                        b.chuHuoDanHao,
+                                        b.danCiChuHuoShiJian,
+                                        b.danCiChuHuo,
+                                        a.OrdB_ID
+                                from (
+                                        select a.*, b.OrdB_ID
+                                        from (
+                                                    select substring(smSOBPlus.smSOBPlusmyField12, 0, 11) as smSOBPlusmyField12,
+                                                        smOType.SC_Name,
+                                                        erpKh.kh_No                                   as keHuBianHao,
+                                                        smSOA.KhPONo,
+                                                        smSOA.Bt_Date                                 as dingDanShiJian,
+                                                        smSOA.Bt_No                                   as xiaoShouDanHao,
+                                                        smSOA.OrdA_ID,
+                                                        --                                     smSOB.OrdB_ID,
+                                                        sum(smSOB.P_Qty)                              as dingDanShuLiang,
+                                                        smSOB.Due_Date                                as jiHuaJiaoQi,
+                                                        substring(erpSp.sp_No, 0, 7)                  as cunHuoBianHao,
+                                                        sum(smSOQuan.Ship_Qty)                        as leiJiChuHuo
+                                                    from smSOBPlus,
+                                                        smSOQuan,
+                                                        smOType,
+                                                        erpKh,
+                                                        smSOA,
+                                                        smSOB,
+                                                        erpSp
+                                                    where smSOBPlus.OrdB_ID = smSOB.OrdB_ID
+                                                    and smSOQuan.OrdB_ID = smSOB.OrdB_ID
+                                                    and smOType.SC_ID = smSOA.SC_ID
+                                                    and erpKh.Kh_ID = smSOA.Kh_ID
+                                                    and smSOA.OrdA_ID = smSOB.OrdA_ID
+                                                    and erpSp.SP_ID = smSOB.SP_ID
+                                                    {$cond}
+                                                    group by smOType.SC_Name,
+                                                            erpKh.kh_No,
+                                                            smSOA.KhPONo,
+                                                            smSOA.Bt_Date,
+                                                            smSOA.Bt_No,
+                                                            smSOA.OrdA_ID,
+                                                            smSOB.Due_Date,
+                                                            substring(erpSp.sp_No, 0, 7),
+                                                            substring(smSOBPlus.smSOBPlusmyField12, 0, 11)
+                                                ) as a,
+                                                (select substring(smSOBPlus.smSOBPlusmyField12, 0, 11) as smSOBPlusmyField12,
+                                                        smSOA.KhPONo,
+                                                        smSOB.OrdB_ID,
+                                                        substring(erpSp.sp_No, 0, 7)                  as cunHuoBianHao
+                                                from smSOBPlus,
+                                                    smSOQuan,
+                                                    smOType,
+                                                    erpKh,
+                                                    smSOA,
+                                                    smSOB,
+                                                    erpSp
+                                                where smSOBPlus.OrdB_ID = smSOB.OrdB_ID
+                                                and smSOQuan.OrdB_ID = smSOB.OrdB_ID
+                                                and smOType.SC_ID = smSOA.SC_ID
+                                                and erpKh.Kh_ID = smSOA.Kh_ID
+                                                and smSOA.OrdA_ID = smSOB.OrdA_ID
+                                                and erpSp.SP_ID = smSOB.SP_ID
+                                                {$cond}
+                                                ) as b
+                                        where a.KhPONo = b.KhPONo
+                                            and a.smSOBPlusmyField12 = b.smSOBPlusmyField12
+                                            and a.cunHuoBianHao = b.cunHuoBianHao
+                                    ) as a
+                                        left join (select btBook.OrdA_ID      as oaid,
+                                                            btBook.OrdB_ID      as obid,
+                                                            smShipmentA.Bt_No   as chuHuoDanHao,
+                                                            smShipmentA.Bt_Date as danCiChuHuoShiJian,
+                                                            btBook.P_Qty        as danCiChuHuo
+                                                    from smShipmentA,
+                                                        btBook
+                                                    where smShipmentA.Bt_ID = btBook.Bt_ID
+                                                        and btBook.BT_CODE = 'smShip') as b
+                                                    on b.oaid = a.OrdA_ID and b.obid = a.OrdB_ID) as t
+                            group by t.smSOBPlusmyField12,
+                                    t.SC_Name,
+                                    t.cunHuoBianHao,
+                                    t.keHuBianHao,
+                                    t.KhPONo,
+                                    t.dingDanShiJian,
+                                    t.xiaoShouDanHao,
+                                    t.dingDanShuLiang,
+                                    t.jiHuaJiaoQi,
+        --                         t.chuHuoDanHao,
+                                    t.leiJiChuHuo,
+                                    t.chuHuoDanHao,
+                                    t.danCiChuHuoShiJian,
+                                    t.OrdB_ID
+                            having leiJiChuHuo = '0'
+                            and dingDanShiJian between convert(datetime, '2021-01-01 00:00:00.000') and convert(datetime, '2021-05-01 00:00:00.000')
+                        ) as a,
+                        smSOB as b,
+                        smSOA as c,
+                        smPrice as d
+                    where a.OrdB_ID = b.OrdB_ID
+                        and b.OrdA_ID = c.OrdA_ID
+                        and b.SP_ID = d.SP_ID) as t
+                where FromDate < Bt_Date";
+
+        $result = $db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+
+        $SP_IDS = implode(',', array_map(function ($e) {
+            return "'{$e['SP_ID']}'";
+        }, $result));
+
+        dump($SP_IDS);
+        $sql = "update smSOB set P_Price = '{$price}', tP_Price = '{$price}' where SP_ID in ({$SP_IDS})";
+        $r = $db->exec($sql);
+
+        return $r;
     }
 }
