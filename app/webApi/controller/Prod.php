@@ -2,10 +2,10 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-18 15:00:44
- * @LastEditTime: 2021-06-08 09:32:20
+ * @LastEditTime: 2021-07-14 09:48:03
  * @LastEditors: yanbuw1911
  * @Description: 
- * @FilePath: \sverp\app\webApi\controller\Prod.php
+ * @FilePath: /sverp/app/webApi/controller/Prod.php
  */
 
 namespace app\webApi\controller;
@@ -250,11 +250,18 @@ class Prod
             ]);
         }
 
-        $algorithm = new ProdAutoSchd($params);
+        try {
+            $algorithm = new ProdAutoSchd($params);
 
-        return json([
-            'result' => true,
-            'data' => $algorithm->scheduleList()
-        ]);
+            return json([
+                'result' => true,
+                'data' => $algorithm->scheduleList()
+            ]);
+        } catch (\Throwable $th) {
+            return json([
+                'result' => false,
+                'msg' => $th->getMessage()
+            ]);
+        }
     }
 }

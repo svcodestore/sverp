@@ -3,9 +3,9 @@
 * @Author: yanbuw1911
 * @Date: 2021-05-20 09:49:01
  * @LastEditors: yanbuw1911
- * @LastEditTime: 2021-06-09 08:46:55
+ * @LastEditTime: 2021-07-14 10:00:30
 * @Description: Do not edit
- * @FilePath: \sverp\app\algorithm\ProdAutoSchd.php
+ * @FilePath: /sverp/app/algorithm/ProdAutoSchd.php
 */
 
 declare(strict_types=1);
@@ -274,7 +274,16 @@ class ProdAutoSchd
 
             // 调整工站顺序一并计算工序开始时间和完成时间
             if ($isSchedule) {
-                $this->schedule($key, $beforeOnlineWorkshop, $afterOnlineWorkshop);
+                try {
+                    $this->schedule($key, $beforeOnlineWorkshop, $afterOnlineWorkshop);
+                } catch (\Throwable $th) {
+                    $msg = "生产单工站设定错误，未找到车间上线工站。\n";
+                    $msg .= "{$this->prodList[$key]['ppi_workshop_name']} {$this->prodList[$key]['ppi_customer_no']} {$this->prodList[$key]['ppi_customer_pono']} {$this->prodList[$key]['ppi_prd_item']} 生产单工站：\n";
+                    $msg .= implode("，", array_map(function ($e) {
+                        return $e['map_ppi_phs'];
+                    }, $this->prodList[$key]['phases']));
+                    throw new \Exception($msg);
+                }
             }
 
             $this->prodList[$key]['phases'] = array_merge($beforeOnlineWorkshop, $afterOnlineWorkshop);
