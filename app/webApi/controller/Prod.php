@@ -2,7 +2,7 @@
 /*
  * @Author: yanbuw1911
  * @Date: 2020-11-18 15:00:44
- * @LastEditTime: 2021-07-14 09:48:03
+ * @LastEditTime: 2021-07-15 13:36:09
  * @LastEditors: yanbuw1911
  * @Description: 
  * @FilePath: /sverp/app/webApi/controller/Prod.php
@@ -196,32 +196,40 @@ class Prod
             ];
         }
 
-        // 行事历
-        $arrangeDays        = (new ModelProd())->calendar($year, $month, 1);
+        $getArrangeDays = function (string $year, string $month) {
+            // 行事历
+            $arrangeDays        = (new ModelProd())->calendar($year, $month, 1);
 
-        foreach ($arrangeDays as $k => $v) {
-            if ($v['ppi_cald_profile']) {
-                $profile = json_decode($v['ppi_cald_profile'], true);
-                if (isset($profile['ppi_workday_time_range'])) {
-                    $workdayTimeRange = explode(' | ', $profile['ppi_workday_time_range']);
+            foreach ($arrangeDays as $k => $v) {
+                if ($v['ppi_cald_profile']) {
+                    $profile = json_decode($v['ppi_cald_profile'], true);
+                    if (isset($profile['ppi_workday_time_range'])) {
+                        $workdayTimeRange = explode(' | ', $profile['ppi_workday_time_range']);
 
-                    try {
-                        list($morning, $afternoon, $evening) = $workdayTimeRange;
-                    } catch (\Throwable $th) {
-                        $offset = substr($th->getMessage(), -1);
-                        if ($offset == '1') {
-                            $afternoon = null;
-                            $evening   = null;
-                        } else if ($offset == '2') {
-                            $evening = null;
+                        try {
+                            list($morning, $afternoon, $evening) = $workdayTimeRange;
+                        } catch (\Throwable $th) {
+                            $offset = substr($th->getMessage(), -1);
+                            if ($offset == '1') {
+                                $afternoon = null;
+                                $evening   = null;
+                            } else if ($offset == '2') {
+                                $evening = null;
+                            }
                         }
+                        $arrangeDays[$k]['morning'] = $morning;
+                        $arrangeDays[$k]['afternoon'] = $afternoon;
+                        $arrangeDays[$k]['evening'] = $evening;
                     }
-                    $arrangeDays[$k]['morning'] = $morning;
-                    $arrangeDays[$k]['afternoon'] = $afternoon;
-                    $arrangeDays[$k]['evening'] = $evening;
                 }
             }
-        }
+
+            return $arrangeDays;
+        };
+
+        $prevDate   = explode('-', date('Y-m', strtotime('-1 month', strtotime($date))));
+        $nextDate   = explode('-', date('Y-m', strtotime('1 month', strtotime($date))));
+        $nnextDate  = explode('-', date('Y-m', strtotime('2 month', strtotime($date))));
 
         // 获取生产排程参数
         $schdParams = (new ModelProd())->prdSchdParam();
@@ -231,7 +239,10 @@ class Prod
             'month'          => $month,
             'prodLine'       => $prodLine,
             'prodOrdersList' => $prodOrdersList,
-            'arrangeDays'    => $arrangeDays,
+            'arrangeDays'    => $getArrangeDays($year, $month),
+            'pArrangeDays'   => $getArrangeDays($prevDate[0], $prevDate[1]),
+            'nArrangeDays'   => $getArrangeDays($nextDate[0], $nextDate[1]),
+            'nnArrangeDays'  => $getArrangeDays($nnextDate[0], $nnextDate[1]),
             'schdParams'     => $schdParams,
             'schdMode'       => $schdMode
         ];
