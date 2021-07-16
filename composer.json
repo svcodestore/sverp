@@ -17,7 +17,7 @@
         {
             "name": "yunwuxin",
             "email": "448901948@qq.com"
-        }        
+        }
     ],
     "require": {
         "php": ">=7.1.0",
@@ -33,7 +33,7 @@
     },
     "require-dev": {
         "symfony/var-dumper": "^4.2",
-        "topthink/think-trace":"^1.0"
+        "topthink/think-trace": "^1.0"
     },
     "autoload": {
         "psr-4": {
@@ -42,7 +42,9 @@
         "psr-0": {
             "": "extend/"
         },
-        "files": ["extend/Prodigy_DBF.php"]
+        "files": [
+            "extend/Prodigy_DBF.php"
+        ]
     },
     "config": {
         "preferred-install": "dist"
