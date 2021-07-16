@@ -3,7 +3,7 @@
 * @Author: yanbuw1911
 * @Date: 2021-05-20 09:49:01
  * @LastEditors: yanbuw1911
- * @LastEditTime: 2021-07-15 15:02:50
+ * @LastEditTime: 2021-07-16 13:55:11
 * @Description: Do not edit
  * @FilePath: /sverp/app/algorithm/ProdAutoSchd.php
 */
@@ -488,7 +488,11 @@ class ProdAutoSchd
 
         // 其它月计算
         $realMonth   = date('Y-m', $timestamp);
-        $currMonth   = date('Y-m', strtotime($arrangeDays[0]['ppi_cald_date']));
+        $currMonth   = date('Y-m', $this->schStartAt);
+        if (isset($arrangeDays[0]) && isset($arrangeDays[0]['ppi_cald_date'])) {
+
+            $currMonth = date('Y-m', strtotime($arrangeDays[0]['ppi_cald_date']));
+        }
 
         if ($realMonth !== $currMonth) {
             if (strtotime($realMonth) < strtotime($currMonth)) {
